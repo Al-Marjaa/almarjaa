@@ -38,6 +38,8 @@ const INQ_COLS  = ["id", "created_at", "updated_at", "status", "status_note", "n
                    "service", "service_ar", "service_id", "transaction", "transaction_ar", "sub_index", "notes",
                    "user_id", "folder_id", "folder_url"];
 const FILE_COLS = ["id", "inquiry_id", "user_id", "doc_index", "label", "label_ar", "file_name", "file_id", "size", "created_at"];
+const NEWS_COLS = ["id", "date", "category", "service_id", "title", "title_ar", "summary", "summary_ar",
+                   "body", "body_ar", "source_name", "source_url", "published", "image"];
 const USER_COLS = ["id", "email", "name", "phone", "role", "created_at", "last_login", "salt", "hash"];
 
 /* =====================================================================
@@ -57,6 +59,13 @@ function setup() {
   ensureSheet_(ss, "Inquiries", INQ_COLS);
   ensureSheet_(ss, "Files", FILE_COLS);
   ensureSheet_(ss, "Users", USER_COLS);
+  const newsSh = ensureSheet_(ss, "News", NEWS_COLS);
+  const nrows = Math.max(newsSh.getMaxRows() - 1, 1);
+  newsSh.getRange(2, NEWS_COLS.indexOf("category") + 1, nrows, 1)
+    .setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(["news", "guide", "announcement"], true).build());
+  newsSh.getRange(2, NEWS_COLS.indexOf("published") + 1, nrows, 1)
+    .setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
+  ["body", "body_ar", "summary", "summary_ar"].forEach(c => newsSh.setColumnWidth(NEWS_COLS.indexOf(c) + 1, 320));
   const def = ss.getSheetByName("Sheet1"); if (def && ss.getSheets().length > 1) ss.deleteSheet(def);
 
   // status dropdown + colours on the Inquiries tab
@@ -170,6 +179,62 @@ const ACTIONS = {
     update_("Users", u._row, { salt, hash: hash_(d.password, salt), last_login: new Date() });
     cache.remove(key);
     return { token: newSession_(u.id), user: publicUser_(u) };
+  },
+
+  /* ---------- public: news rows from the "News" tab ---------- */
+  news() {
+    const all = rows_("News");
+    const items = all.filter(r => truthy_(r.published) && (r.title || r.title_ar)).map(r => newsOut_(r));
+    const hidden = all.filter(r => !truthy_(r.published)).map(r => String(r.id));   // hides built-in posts too
+    return { items, hidden };
+  },
+
+  /* ---------- office: write news from the website ---------- */
+  newsAll(d) {
+    admin_(d.token);
+    ensureSheet_(sheet_(), "News", NEWS_COLS);
+    return { items: rows_("News").map(r => newsOut_(r, true)) };
+  },
+
+  newsSave(d) {
+    admin_(d.token);
+    const p = d.post || {};
+    const txt = v => String(v == null ? "" : v).trim();
+    if (!txt(p.title) && !txt(p.titleAr)) throw fail_("missing_fields");
+    return withLock_(() => {
+      ensureSheet_(sheet_(), "News", NEWS_COLS);
+      const all = rows_("News");
+      let id = slug_(p.id);
+      if (!id) {
+        const base = slug_(p.title).slice(0, 48) || "post";
+        id = base; let n = 2;
+        while (all.some(r => String(r.id) === id)) id = base + "-" + n++;
+      }
+      const existing = all.find(r => String(r.id) === id);
+      let image = /^https:\/\//.test(txt(p.image)) ? txt(p.image) : "";
+      if (p.imageData) image = saveNewsImage_(p.imageData, p.imageType, id);
+      const paras = a => (Array.isArray(a) ? a : String(a || "").split(/\n\s*\n/)).map(txt).filter(Boolean).join("\n\n");
+      const row = {
+        id, date: /^\d{4}-\d{2}-\d{2}$/.test(txt(p.date)) ? txt(p.date) : today_(),
+        category: ["news", "guide", "announcement"].indexOf(p.category) >= 0 ? p.category : "news",
+        service_id: txt(p.service), title: txt(p.title), title_ar: txt(p.titleAr),
+        summary: txt(p.summary), summary_ar: txt(p.summaryAr), body: paras(p.body), body_ar: paras(p.bodyAr),
+        source_name: txt(p.sourceName), source_url: /^https?:\/\//.test(txt(p.sourceUrl)) ? txt(p.sourceUrl) : "",
+        published: !!p.published, image
+      };
+      if (existing) update_("News", existing._row, row); else append_("News", row);
+      return { item: newsOut_(row, true) };
+    });
+  },
+
+  newsDelete(d) {
+    admin_(d.token);
+    return withLock_(() => {
+      const r = rows_("News").find(x => String(x.id) === String(d.id));
+      if (!r) throw fail_("not_found");
+      sheet_().getSheetByName("News").deleteRow(r._row);
+      return {};
+    });
   },
 
   /* ---------- inquiries ---------- */
@@ -299,6 +364,35 @@ function iso_(v) { return v instanceof Date ? v.toISOString() : (v ? new Date(v)
 
 function rootFolder_() { return sub_(DriveApp.getRootFolder(), CONFIG.ROOT_FOLDER_NAME); }
 function sub_(parent, name) { const it = parent.getFoldersByName(name); return it.hasNext() ? it.next() : parent.createFolder(name); }
+
+/* ---------- news helpers ---------- */
+function truthy_(v) { return v === true || /^(true|yes|y|1|نعم)$/i.test(String(v).trim()); }
+function today_() { return Utilities.formatDate(new Date(), CONFIG.TIME_ZONE, "yyyy-MM-dd").slice(0, 10); }
+function slug_(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60); }
+function admin_(token) { const u = auth_(token); if (u.role !== "admin") throw fail_("forbidden"); return u; }
+function newsOut_(r, withState) {
+  const paras = v => String(v || "").split(/\n\s*\n|\r\n\s*\r\n/).map(x => x.trim()).filter(Boolean);
+  const o = {
+    id: String(r.id), date: r.date instanceof Date ? Utilities.formatDate(r.date, CONFIG.TIME_ZONE, "yyyy-MM-dd").slice(0, 10) : String(r.date || "").slice(0, 10),
+    category: ["news", "guide", "announcement"].indexOf(r.category) >= 0 ? r.category : "news",
+    service: String(r.service_id || ""),
+    title: String(r.title || ""), titleAr: String(r.title_ar || ""),
+    summary: String(r.summary || ""), summaryAr: String(r.summary_ar || ""),
+    body: paras(r.body), bodyAr: paras(r.body_ar),
+    image: /^https:\/\//.test(String(r.image || "")) ? String(r.image) : "",
+    source: r.source_url ? { name: String(r.source_name || r.source_url), url: String(r.source_url) } : null
+  };
+  if (withState) o.published = truthy_(r.published);
+  return o;
+}
+/* cover photos go to "Al Marjaa — Client Files / _News images", shared view-only so the site can show them */
+function saveNewsImage_(b64, type, id) {
+  const folder = sub_(rootFolder_(), "_News images");
+  const ext = /png/.test(type) ? ".png" : /webp/.test(type) ? ".webp" : ".jpg";
+  const f = folder.createFile(Utilities.newBlob(Utilities.base64Decode(b64), type || "image/jpeg", id + "-" + Date.now() + ext));
+  try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) { throw fail_("image_share"); }
+  return "https://drive.google.com/thumbnail?id=" + f.getId() + "&sz=w1600";
+}
 
 function sheet_() {
   const id = PropertiesService.getScriptProperties().getProperty("SHEET_ID");
