@@ -11,10 +11,11 @@
   const page = document.body.dataset.page || "home";
 
   /* ---------- language + text helpers ----------
-     Four modes: "mx" (English + French + Arabic together, the default on every
-     visit), "en", "fr", "ar". In "mx", text helpers return a marked group
+     Five modes: "enar" (English + Arabic, the default on every visit),
+     "frar" (French + Arabic), "en", "fr", "ar". In the two bilingual modes,
+     text helpers return a marked group
      \uE000en\uE001fr\uE001ar\uE002 that the page turns into stacked spans. */
-  const LANGS = ["mx", "en", "fr", "ar"];
+  const LANGS = ["enar", "frar", "en", "fr", "ar"];
   const O = "\uE000", M = "\uE001", C = "\uE002";
   const GROUP = /\uE000([^\uE000-\uE002]*)\uE001([^\uE000-\uE002]*)\uE001([^\uE000-\uE002]*)\uE002/g;
   const ss = {
@@ -23,11 +24,15 @@
   };
   let lang = (() => {
     let q = null; try { q = new URLSearchParams(location.search).get("lang"); } catch {}
-    return LANGS.includes(q) ? q : LANGS.includes(ss.get("am_lang")) ? ss.get("am_lang") : "mx";
+    if (q === "mx") q = "enar";
+    return LANGS.includes(q) ? q : LANGS.includes(ss.get("am_lang")) ? ss.get("am_lang") : "enar";
   })();
-  const MX = () => lang === "mx", AR = () => lang === "ar", FR = () => lang === "fr";
+  const MX = () => lang === "enar" || lang === "frar", AR = () => lang === "ar", FR = () => lang === "fr";
+  const FRish = () => lang === "fr" || lang === "frar";          // French is the main language
+  const LEADI = () => lang === "frar" ? 1 : 0;                   // which slot leads in a bilingual group
   const part = (s, i) => String(s ?? "").replace(GROUP, (_, a, b, c) => [a, b, c][i]);       // 0 en · 1 fr · 2 ar
-  const plain = s => String(s ?? "").replace(GROUP, (_, a, b, c) => [...new Set([a, b, c].filter(Boolean))].join(" · "));
+  const lead = (a, b) => lang === "frar" ? (b || a) : (a || b);
+  const plain = s => String(s ?? "").replace(GROUP, (_, a, b, c) => [...new Set([lead(a, b), c].filter(Boolean))].join(" · "));
   const tri = (en, fr, ar) => {
     en = part(en, 0); fr = part(fr, 1); ar = part(ar, 2);
     if (fr === en) fr = ""; if (ar === en || ar === fr) ar = "";
@@ -54,7 +59,7 @@
   const safe = s => String(s).replace(/[\\/:*?"<>|#%]+/g, " ").replace(/\s+/g, " ").trim();
   const ext = n => { const i = n.lastIndexOf("."); return i > 0 ? n.slice(i).toLowerCase() : ""; };
   const fmtDate = d => {
-    try { return new Intl.DateTimeFormat(AR() ? "ar-LB" : FR() ? "fr-FR" : "en-GB", { day: "numeric", month: "long", year: "numeric" }).format(new Date(d)); }
+    try { return new Intl.DateTimeFormat(AR() ? "ar-LB" : FRish() ? "fr-FR" : "en-GB", { day: "numeric", month: "long", year: "numeric" }).format(new Date(d)); }
     catch { return String(d); }
   };
   const qs = k => new URLSearchParams(location.search).get(k);
@@ -106,9 +111,10 @@
       <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
     </button>
     <div class="langsel" id="langSel">
-      <button class="lang" id="langBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Language · Langue · اللغة">EN·FR·ع</button>
+      <button class="lang" id="langBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Language · Langue · اللغة">EN·ع</button>
       <div class="lang-menu" id="langMenu" role="menu" hidden>
-        <button type="button" role="menuitemradio" data-lang="mx"><b>EN · FR · ع</b><small>Trilingual · Trilingue · ثلاثي</small></button>
+        <button type="button" role="menuitemradio" data-lang="enar"><b>EN · ع</b><small>English · العربية</small></button>
+        <button type="button" role="menuitemradio" data-lang="frar"><b>FR · ع</b><small>Français · العربية</small></button>
         <button type="button" role="menuitemradio" data-lang="en"><b>EN</b><small>English</small></button>
         <button type="button" role="menuitemradio" data-lang="fr"><b>FR</b><small>Français</small></button>
         <button type="button" role="menuitemradio" data-lang="ar" dir="rtl"><b>ع</b><small>العربية</small></button>
@@ -233,10 +239,10 @@
   const onLang = [];
   function applyLang() {
     const h = document.documentElement;
-    h.lang = MX() ? "en" : lang; h.dir = AR() ? "rtl" : "ltr"; h.dataset.lang = lang;
+    h.lang = lang === "enar" ? "en" : lang === "frar" ? "fr" : lang; h.dir = AR() ? "rtl" : "ltr"; h.dataset.lang = lang;
     $$("[data-i18n]").forEach(e => e.textContent = t(e.dataset.i18n));
     $$("[data-i18n-ph]").forEach(e => e.placeholder = plain(t(e.dataset.i18nPh)));
-    $("#langBtn").textContent = { mx: "EN·FR·ع", en: "EN", fr: "FR", ar: "ع" }[lang];
+    $("#langBtn").textContent = { enar: "EN·ع", frar: "FR·ع", en: "EN", fr: "FR", ar: "ع" }[lang];
     $$("#langMenu [data-lang]").forEach(b => b.setAttribute("aria-checked", b.dataset.lang === lang));
     $$("[data-brand]").forEach(e => e.textContent = AR() ? S.brandAr : MX() ? tri(S.brand, "", S.brandAr) : S.brand);
     $$("[data-brand-ar]").forEach(e => { e.hidden = MX(); e.textContent = AR() ? S.brand : S.brandAr; e.classList.toggle("ar", !AR()); });
@@ -255,7 +261,7 @@
     reveal();
   }
   // WhatsApp message in the reader's language (all three in the merged mode)
-  const waText = () => MX() ? [0, 1, 2].map(i => part(t("wa.msg", { brand: S.brand }), i)).join("\n") : t("wa.msg", { brand: AR() ? S.brandAr : S.brand });
+  const waText = () => MX() ? [LEADI(), 2].map(i => part(t("wa.msg", { brand: S.brand }), i)).join("\n") : t("wa.msg", { brand: AR() ? S.brandAr : S.brand });
   function waLinks(root = document) {
     $$("[data-wa]", root).forEach(a => { a.href = `https://wa.me/${S.whatsapp}?text=${encodeURIComponent(waText())}`; a.target = "_blank"; a.rel = "noopener"; });
   }
@@ -286,11 +292,13 @@
     let last = 0;
     for (const m of s.matchAll(GROUP)) {
       if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
-      const [, en, fr, ar] = m;
+      const [, en, fr, ar0] = m;
+      const main = lead(en, fr), mainLang = lang === "frar" && fr ? "fr" : "en", ar = ar0 !== main ? ar0 : "";
+      if (!ar) { frag.appendChild(document.createTextNode(main)); last = m.index + m[0].length; continue; }
       const box = document.createElement("tri-l");   // own tag: no page style aimed at <span> can catch it
       box.className = "tri";
-      if (only && !(p.closest && p.closest(NO_STACK)) && (STACK_TAGS.test(p.nodeName) || (p.matches && p.matches(STACK_SEL)) || en.length > 70)) box.classList.add("stack");
-      [["l-en", en, "en"], ["l-fr", fr, "fr"], ["l-ar", ar, "ar"]].forEach(([cls, txt, l]) => {
+      if (only && !(p.closest && p.closest(NO_STACK)) && (STACK_TAGS.test(p.nodeName) || (p.matches && p.matches(STACK_SEL)) || main.length > 70)) box.classList.add("stack");
+      [["l-en", main, mainLang], ["l-ar", ar, "ar"]].forEach(([cls, txt, l]) => {
         if (!txt) return;
         const sp = document.createElement("tri-t");
         sp.className = cls; sp.lang = l; if (l === "ar") sp.dir = "rtl";
@@ -316,7 +324,7 @@
     else m.addedNodes.forEach(triScan);
   })).observe(document.documentElement, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS });
   // read the visible text of an element without losing the three languages (e.g. to restore a button label)
-  const labelOf = el => { const c = el.cloneNode(true); c.querySelectorAll(".tri").forEach(x => x.replaceWith(tri(...["l-en", "l-fr", "l-ar"].map(k => (x.querySelector("." + k) || {}).textContent || "")))); return c.textContent; };
+  const labelOf = el => { const c = el.cloneNode(true); c.querySelectorAll(".tri").forEach(x => { const m = (x.querySelector(".l-en") || {}).textContent || "", a = (x.querySelector(".l-ar") || {}).textContent || ""; x.replaceWith(lang === "frar" ? tri(m, m, a) : tri(m, "", a)); }); return c.textContent; };
 
   /* ---------- theme ---------- */
   const isLight = () => document.documentElement.dataset.theme === "light";
@@ -421,7 +429,8 @@
     newsPromise = null;
     newsListeners.forEach(f => { try { f(); } catch (e) { console.error(e); } });
   }
-  const bodyOf = n => (AR() ? n.bodyAr : FR() ? n.bodyFr : n.body) || n.body || n.bodyAr || [];
+  const has = b => b && b.length ? b : null;
+  const bodyOf = n => (AR() ? has(n.bodyAr) : FRish() ? has(n.bodyFr) : has(n.body)) || has(n.body) || has(n.bodyAr) || [];
   const readMins = n => Math.max(1, Math.round(bodyOf(n).join(" ").split(/\s+/).length / 200));
 
   // a broken picture link should never leave a broken-image icon behind
@@ -446,7 +455,7 @@
 
   window.AM = {
     S, SV, t, esc, pad, safe, ext, toast, ICONS, qs, page,
-    isAR: AR, isFR: FR, isMX: MX, lang: () => lang, setLang, pick, tri, plain, part, per, labelOf, bodyOf, waLinks,
+    isAR: AR, isFR: FRish, isMX: MX, lead: LEADI, lang: () => lang, setLang, pick, tri, plain, part, per, labelOf, bodyOf, waLinks,
     title, altTitle, subName, blurb, doc, docEn, svcById, fmtDate,
     isLight, reduced, onLang, onTheme, reveal, news, newsCard, readMins, applyLang,
     newsRefresh, onNews: newsListeners

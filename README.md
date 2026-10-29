@@ -1,6 +1,6 @@
 # Al Marjaa — المرجع
 
-A 3D website in four language modes — **English + Français + العربية together** (the default), English, Français or العربية — with light and dark modes, for a Lebanese government-transactions office. The site is hosted free on **GitHub Pages**. Everything else runs on **your Google account**:
+A 3D website in five language modes — **English + العربية** (the default), **Français + العربية**, English, Français or العربية — with light and dark modes, for a Lebanese government-transactions office. The site is hosted free on **GitHub Pages**. Everything else runs on **your Google account**:
 
 | What | Where it lives |
 |---|---|
@@ -84,9 +84,9 @@ Pictures are stored in Drive under `Al Marjaa — Client Files / _News images` a
 Tip: `yoursite/news.html#newsroom` opens the Newsroom directly (it asks you to log in first).
 
 ## 5. Languages and first visit
-- Every new visit opens in the **merged mode** (English, French and Arabic stacked) and in **light mode**.
-- The language button in the header (`EN·FR·ع`) switches to English only, French only or Arabic only; the sun/moon button switches to dark. Both choices last while the visitor browses the site, and reset on their next visit.
-- A link can force a language: add `?lang=en`, `?lang=fr`, `?lang=ar` or `?lang=mx` to any page address.
+- Every new visit opens in **English + العربية** and in **light mode**.
+- The language button in the header (`EN·ع`) offers: English + العربية, Français + العربية, English only, Français only, العربية only. The sun/moon button switches to dark. Both choices last while the visitor browses the site, and reset on their next visit.
+- A link can force a language: add `?lang=enar`, `?lang=frar`, `?lang=en`, `?lang=fr` or `?lang=ar` to any page address.
 
 ## 6. Official news (Presidency of the Council of Ministers)
 - Every hour your Google script reads https://www.pcm.gov.lb/arabic/listingandpdf.aspx?pageid=21173, keeps each dated headline with its link, adds English and French titles with Google Translate, and stores them in the **PCM** tab. The website shows the newest 30 under the **Official** filter; each one opens the original page on pcm.gov.lb.

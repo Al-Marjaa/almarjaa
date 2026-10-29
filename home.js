@@ -12,7 +12,7 @@
   stats[0].dataset.count = SV.length;
   stats[1].dataset.count = SV.reduce((n, s) => n + s.subs.length, 0);
   const marquee = () => {
-    const mq = SV.map(s => `<a href="service.html?id=${s.id}">${esc(AM.isAR() ? s.title : AM.isFR() ? s.fr : s.title)}${AM.isMX() ? ` <em>${esc(s.fr)}</em>` : ""} <span class="ar">${esc(s.ar)}</span><i></i></a>`).join("");
+    const mq = SV.map(s => `<a href="service.html?id=${s.id}">${esc(AM.isFR() ? s.fr : s.title)} <span class="ar">${esc(s.ar)}</span><i></i></a>`).join("");
     $("#marquee").innerHTML = mq + mq;
   };
   marquee(); AM.onLang.push(marquee);
@@ -21,10 +21,10 @@
     const h1 = $(".hero-title"); if (!h1) return;
     let box = $(".hero-tri");
     if (!AM.isMX()) { box && box.remove(); return; }
-    $$(".hero-title .line").forEach(l => l.textContent = AM.part(t(l.dataset.i18n), 0));
+    $$(".hero-title .line").forEach(l => l.textContent = AM.part(t(l.dataset.i18n), AM.lead()));
     const line = i => ["hero.l1", "hero.l2", "hero.l3"].map(k => AM.part(t(k), i)).join(" ");
     if (!box) { box = document.createElement("div"); box.className = "hero-tri"; h1.after(box); }
-    box.innerHTML = `<p class="ht-fr" lang="fr">${esc(line(1))}</p><p class="ht-ar" lang="ar" dir="rtl">${esc(line(2))}</p>`;
+    box.innerHTML = `<p class="ht-ar" lang="ar" dir="rtl">${esc(line(2))}</p>`;
   };
   AM.onLang.push(heroTri);
   function countUp() {

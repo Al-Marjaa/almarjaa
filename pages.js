@@ -192,7 +192,7 @@
       const s = AM.svcById(n.service);
       const body = AM.bodyOf(n);
       // merged mode: the full article in each language, one after the other
-      const bodies = AM.isMX() ? [["en", n.body], ["fr", n.bodyFr], ["ar", n.bodyAr]].filter(([, b]) => b && b.length) : [[AM.lang(), body]];
+      const bodies = AM.isMX() ? [[AM.isFR() && n.bodyFr && n.bodyFr.length ? "fr" : "en", body], ["ar", n.bodyAr]].filter(([, b]) => b && b.length) : [[AM.lang(), body]];
       document.title = AM.plain(`${AM.pick(n.title, n.titleAr, n.titleFr)} — ${AM.isAR() ? AM.S.brandAr : AM.S.brand}`);
       const more = list.filter(x => x.id !== n.id).slice(0, 3);
       main.innerHTML = `
