@@ -151,3 +151,50 @@ window.NEWS = [
     source: { name: "NSSF — cnss.gov.lb", url: "https://www.cnss.gov.lb/33-%D9%83%D8%B1%D9%83%D9%8A-%D8%AA%D8%A3%D8%AC%D9%8A%D9%84-%D8%A7%D8%B3%D8%AA%D8%AD%D9%82%D8%A7%D9%82-%D8%A7%D8%B4%D8%AA%D8%B1%D8%A7%D9%83%D8%A7%D8%AA-%D8%A7%D9%84%D8%B6%D9%85%D8%A7%D9%86-%D8%A7/" }
   }
 ];
+
+/* ---------------- Français ---------------- */
+(function () {
+  const FR = {
+    "website-launch": ["Al Marjaa est en ligne : ouvrez et suivez votre dossier où que vous soyez",
+      "Créez un compte, envoyez vos documents pour l'un de nos 12 services et suivez chaque étape de votre dossier depuis votre téléphone.",
+      ["Notre nouveau site vous permet d'ouvrir un dossier sans passer au bureau. Choisissez le service et la démarche, consultez la liste exacte des documents habituellement demandés, et envoyez des scans ou des photos de chacun.",
+       "Une fois envoyé, votre dossier apparaît dans Mes dossiers avec un numéro et un statut : Reçu, En cours d'examen, En traitement, Prêt à retirer, Terminé. S'il manque quelque chose, nous l'indiquons clairement et vous pouvez ajouter le document directement depuis votre téléphone.",
+       "Tout le site fonctionne en arabe, en français et en anglais, en mode clair ou sombre. Une question ? Un simple message WhatsApp suffit."]],
+    "nafaa-booklets-plates-oct-2026": ["Nafaa : permis de conduire, cartes grises et plaques suspendus pendant un changement de fournisseur",
+      "Des médias locaux rapportent que la délivrance des permis de conduire et des cartes grises, ainsi que la remise des plaques, est à l'arrêt le temps que la production passe à une nouvelle société.",
+      ["Selon des articles parus mi et fin octobre 2026, l'Autorité de gestion du trafic, des véhicules et de la mécanique (Nafaa) a cessé de délivrer les permis de conduire et les cartes grises, et de remettre les plaques. La société qui les produisait aurait arrêté le travail avant la passation à une nouvelle société, qui a besoin de temps pour préparer la production.",
+       "Les articles évoquent l'inquiétude des acheteurs et des concessionnaires, contraints de se fier à des reçus provisoires comme preuve d'une transaction en attendant les nouveaux documents. Aucune date officielle de reprise n'avait été annoncée au moment de ces articles.",
+       "Ce que cela signifie pour vous : si vous achetez ou vendez une voiture, conservez soigneusement chaque reçu et document de la transaction. Si vous avez un dossier chez nous, nous assurons le suivi et vous prévenons dès que les cartes grises et les plaques sont de nouveau délivrées."]],
+    "guide-selling-a-car": ["Vendre ou acheter une voiture d'occasion ? Ce qu'il faut préparer pour le transfert",
+      "La carte grise, les pièces d'identité des deux parties, l'assurance obligatoire au nom de l'acheteur et un contrôle technique : voici la liste habituelle.",
+      ["Le transfert de propriété se fait à la Nafaa et nécessite en général la présence des deux parties, ou une procuration pour celle qui ne peut pas venir. Avant d'y aller, assurez-vous d'avoir la carte grise et une copie certifiée de la pièce d'identité ou de l'extrait d'état civil individuel du vendeur comme de l'acheteur.",
+       "L'acheteur aura aussi besoin d'une assurance obligatoire à son nom, et la voiture peut devoir passer un contrôle technique. Si la voiture appartient à une société, ajoutez le certificat du Registre du commerce et l'autorisation de la personne qui signe.",
+       "Les exigences peuvent varier selon les centres et dans le temps ; nous confirmons donc toujours la liste exacte à l'examen de votre dossier. Vous pouvez tout envoyer depuis la page du service véhicules."]],
+    "guide-legalisation-abroad": ["Utiliser un document libanais à l'étranger : le parcours de légalisation habituel",
+      "L'autorité qui l'a délivré, puis le Ministère des Affaires étrangères, puis l'ambassade du pays de destination, avec une traduction assermentée si nécessaire.",
+      ["Le Liban n'est pas partie à la Convention de La Haye sur l'apostille ; les documents destinés à l'étranger passent donc en général par une chaîne de légalisations. D'abord, l'original est tamponné par l'autorité libanaise qui l'a délivré. Il est ensuite légalisé par le Ministère des Affaires étrangères et des Émigrés.",
+       "De nombreux pays demandent ensuite une traduction assermentée et une dernière légalisation par leur propre ambassade ou consulat à Beyrouth. Chaque ambassade fixe ses propres règles sur les langues, les traducteurs et l'ancienneté acceptée de la légalisation.",
+       "Dites-nous à quel pays le document est destiné, et nous confirmerons les étapes exactes avant de commencer."]],
+    "guide-starting-a-business": ["Créer une entreprise au Liban : les immatriculations par lesquelles passent la plupart des sociétés",
+      "Registre du commerce, numéro financier, affiliation employeur à la CNSS et toute licence sectorielle exigée par votre activité.",
+      ["La plupart des nouvelles entreprises commencent par le Registre du commerce : en tant que commerçant, établissement, ou société comme une SARL ou une SAL. Les sociétés ont besoin de statuts notariés et d'une attestation bancaire de dépôt du capital social.",
+       "Viennent ensuite le numéro financier (fiscal) au Ministère des Finances, puis l'affiliation employeur à la Caisse nationale de sécurité sociale avant toute embauche. Selon votre activité, il peut aussi falloir une licence d'un ministère précis ou de la municipalité.",
+       "Chaque activité est différente. Nous traçons votre parcours exact lors du premier examen, puis traitons chaque immatriculation dans l'ordre."]],
+    "guide-civil-extract-date": ["Pourquoi la date de votre extrait d'état civil compte",
+      "De nombreuses administrations exigent un extrait d'état civil individuel de moins de trois mois. Un extrait plus ancien peut faire revenir votre dossier.",
+      ["L'extrait d'état civil individuel (إخراج قيد فردي) est l'un des papiers les plus demandés dans les démarches libanaises : immatriculation d'une société, sécurité sociale, véhicules et bien d'autres.",
+       "Beaucoup d'administrations ne l'acceptent que s'il est récent, souvent de moins de trois mois. Avant d'envoyer votre dossier, vérifiez la date du vôtre. S'il est plus ancien, nous pouvons en obtenir un nouveau dans le cadre du dossier."]],
+    "nssf-contributions-deadline-2026": ["La CNSS a reporté au 30 juin 2026 l'échéance des cotisations",
+      "Les cotisations mensuelles de février à avril 2026 et trimestrielles du 4e trimestre 2025 et du 1er trimestre 2026 pouvaient être payées jusqu'au 30 juin 2026 ; les majorations de retard s'appliquent à partir du 1er juillet 2026.",
+      ["Par une note datée du 8 avril 2026 et annoncée le 14 avril, le directeur général de la Caisse nationale de sécurité sociale a reporté au 30 juin 2026 l'échéance des cotisations mensuelles des employeurs pour février, mars et avril 2026, ainsi que des cotisations trimestrielles et des catégories spéciales pour le quatrième trimestre 2025 et le premier trimestre 2026.",
+       "Des majorations de retard s'appliquent aux cotisations encore impayées à partir du 1er juillet 2026. Si votre entreprise a des cotisations en suspens ou a besoin d'un quitus, nous pouvons vérifier votre situation et préparer le dossier."]]
+  };
+  (window.NEWS || []).forEach(n => {
+    const f = FR[n.id]; if (!f) return;
+    n.titleFr = f[0]; n.summaryFr = f[1]; n.bodyFr = f[2];
+    if (n.id === "website-launch") {
+      n.body = n.body.map(p => p.replace("works in Arabic and English", "works in Arabic, French and English"));
+      n.bodyAr = (n.bodyAr || []).map(p => p.replace("بالعربية والإنكليزية", "بالعربية والفرنسية والإنكليزية"));
+    }
+  });
+})();

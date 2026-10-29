@@ -10,33 +10,51 @@
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const page = document.body.dataset.page || "home";
 
-  /* ---------- language + text helpers ---------- */
-  let lang = (() => {
-    try {
-      const q = new URLSearchParams(location.search).get("lang");
-      if (q === "ar" || q === "en") return q;
-      return localStorage.getItem("lang") === "ar" ? "ar" : "en";
-    } catch { return "en"; }
-  })();
-  const AR = () => lang === "ar";
-  const t = (k, vars) => {
-    let s = (T[lang] && T[lang][k]) ?? T.en[k] ?? k;
-    if (vars) for (const v in vars) s = s.split(`{${v}}`).join(vars[v]);
-    return s;
+  /* ---------- language + text helpers ----------
+     Four modes: "mx" (English + French + Arabic together, the default on every
+     visit), "en", "fr", "ar". In "mx", text helpers return a marked group
+     \uE000en\uE001fr\uE001ar\uE002 that the page turns into stacked spans. */
+  const LANGS = ["mx", "en", "fr", "ar"];
+  const O = "\uE000", M = "\uE001", C = "\uE002";
+  const GROUP = /\uE000([^\uE000-\uE002]*)\uE001([^\uE000-\uE002]*)\uE001([^\uE000-\uE002]*)\uE002/g;
+  const ss = {
+    get(k) { try { return sessionStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { sessionStorage.setItem(k, v); } catch {} }
   };
-  const pick = (en, ar) => AR() ? (ar || en) : (en || ar);
-  const title = s => AR() ? s.ar : s.title;
-  const altTitle = s => AR() ? s.title : s.ar;
-  const subName = u => AR() ? u.ar : u.name;
-  const blurb = s => pick(s.blurb, s.blurbAr);
-  const doc = d => Array.isArray(d) ? (AR() ? d[1] : d[0]) : d;
+  let lang = (() => {
+    let q = null; try { q = new URLSearchParams(location.search).get("lang"); } catch {}
+    return LANGS.includes(q) ? q : LANGS.includes(ss.get("am_lang")) ? ss.get("am_lang") : "mx";
+  })();
+  const MX = () => lang === "mx", AR = () => lang === "ar", FR = () => lang === "fr";
+  const part = (s, i) => String(s ?? "").replace(GROUP, (_, a, b, c) => [a, b, c][i]);       // 0 en · 1 fr · 2 ar
+  const plain = s => String(s ?? "").replace(GROUP, (_, a, b, c) => [...new Set([a, b, c].filter(Boolean))].join(" · "));
+  const tri = (en, fr, ar) => {
+    en = part(en, 0); fr = part(fr, 1); ar = part(ar, 2);
+    if (fr === en) fr = ""; if (ar === en || ar === fr) ar = "";
+    if (!fr && !ar) return en || "";
+    return O + (en || "") + M + (fr || "") + M + (ar || "") + C;
+  };
+  // build a sentence once per language (fn gets 0 en / 1 fr / 2 ar) — used where several texts are joined
+  const per = fn => MX() ? tri(fn(0), fn(1), fn(2)) : fn(FR() ? 1 : AR() ? 2 : 0);
+  const raw = (L, k) => (T[L] && T[L][k]) ?? T.en[k] ?? k;
+  const fill = (str, vars, i) => { let out = str; if (vars) for (const v in vars) out = out.split(`{${v}}`).join(part(vars[v], i)); return out; };
+  const t = (k, vars) => MX()
+    ? tri(fill(raw("en", k), vars, 0), fill(raw("fr", k), vars, 1), fill(raw("ar", k), vars, 2))
+    : fill(raw(lang, k), vars, FR() ? 1 : AR() ? 2 : 0);
+  const pick = (en, ar, fr) => MX() ? tri(en || fr || ar, fr, ar)
+    : AR() ? (ar || en || fr || "") : FR() ? (fr || en || ar || "") : (en || ar || fr || "");
+  const title = s => pick(s.title, s.ar, s.fr);
+  const altTitle = s => MX() ? "" : AR() ? s.title : s.ar;
+  const subName = u => pick(u.name, u.ar, u.fr);
+  const blurb = s => pick(s.blurb, s.blurbAr, s.blurbFr);
+  const doc = d => Array.isArray(d) ? pick(d[0], d[1], d[2]) : d;
   const docEn = d => Array.isArray(d) ? d[0] : d;
   const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const pad = n => String(n).padStart(2, "0");
   const safe = s => String(s).replace(/[\\/:*?"<>|#%]+/g, " ").replace(/\s+/g, " ").trim();
   const ext = n => { const i = n.lastIndexOf("."); return i > 0 ? n.slice(i).toLowerCase() : ""; };
   const fmtDate = d => {
-    try { return new Intl.DateTimeFormat(AR() ? "ar-LB" : "en-GB", { day: "numeric", month: "long", year: "numeric" }).format(new Date(d)); }
+    try { return new Intl.DateTimeFormat(AR() ? "ar-LB" : FR() ? "fr-FR" : "en-GB", { day: "numeric", month: "long", year: "numeric" }).format(new Date(d)); }
     catch { return String(d); }
   };
   const qs = k => new URLSearchParams(location.search).get(k);
@@ -87,7 +105,15 @@
       <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/></svg>
       <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
     </button>
-    <button class="lang" id="langBtn" type="button" aria-label="Switch language">عربي</button>
+    <div class="langsel" id="langSel">
+      <button class="lang" id="langBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Language · Langue · اللغة">EN·FR·ع</button>
+      <div class="lang-menu" id="langMenu" role="menu" hidden>
+        <button type="button" role="menuitemradio" data-lang="mx"><b>EN · FR · ع</b><small>Trilingual · Trilingue · ثلاثي</small></button>
+        <button type="button" role="menuitemradio" data-lang="en"><b>EN</b><small>English</small></button>
+        <button type="button" role="menuitemradio" data-lang="fr"><b>FR</b><small>Français</small></button>
+        <button type="button" role="menuitemradio" data-lang="ar" dir="rtl"><b>ع</b><small>العربية</small></button>
+      </div>
+    </div>
     <a href="index.html#apply" class="btn btn-small nav-cta" id="navCta">
       <span class="avatar" id="navAvatar" hidden></span>
       <svg class="cta-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
@@ -207,27 +233,90 @@
   const onLang = [];
   function applyLang() {
     const h = document.documentElement;
-    h.lang = lang; h.dir = AR() ? "rtl" : "ltr";
+    h.lang = MX() ? "en" : lang; h.dir = AR() ? "rtl" : "ltr"; h.dataset.lang = lang;
     $$("[data-i18n]").forEach(e => e.textContent = t(e.dataset.i18n));
-    $$("[data-i18n-ph]").forEach(e => e.placeholder = t(e.dataset.i18nPh));
-    $("#langBtn").textContent = t("lang.toggle");
-    $$("[data-brand]").forEach(e => e.textContent = AR() ? S.brandAr : S.brand);
-    $$("[data-brand-ar]").forEach(e => { e.textContent = AR() ? S.brand : S.brandAr; e.classList.toggle("ar", !AR()); });
+    $$("[data-i18n-ph]").forEach(e => e.placeholder = plain(t(e.dataset.i18nPh)));
+    $("#langBtn").textContent = { mx: "EN·FR·ع", en: "EN", fr: "FR", ar: "ع" }[lang];
+    $$("#langMenu [data-lang]").forEach(b => b.setAttribute("aria-checked", b.dataset.lang === lang));
+    $$("[data-brand]").forEach(e => e.textContent = AR() ? S.brandAr : MX() ? tri(S.brand, "", S.brandAr) : S.brand);
+    $$("[data-brand-ar]").forEach(e => { e.hidden = MX(); e.textContent = AR() ? S.brand : S.brandAr; e.classList.toggle("ar", !AR()); });
     $$("[data-svc-title]").forEach(e => { const s = svcById(e.dataset.svcTitle); if (s) e.textContent = title(s); });
     $$("[data-tel]").forEach(a => { a.textContent = S.phone; a.href = "tel:" + S.phone.replace(/\s/g, ""); });
     $$("[data-tel-text]").forEach(a => a.textContent = S.phone);
     $$("[data-mail]").forEach(a => { a.textContent = S.email; a.href = "mailto:" + S.email; });
-    $$("[data-addr]").forEach(e => e.textContent = pick(S.address, S.addressAr));
-    $$("[data-hours]").forEach(e => e.textContent = pick(S.hours, S.hoursAr));
+    $$("[data-addr]").forEach(e => e.textContent = pick(S.address, S.addressAr, S.addressFr));
+    $$("[data-hours]").forEach(e => e.textContent = pick(S.hours, S.hoursAr, S.hoursFr));
     $$("[data-year]").forEach(e => e.textContent = new Date().getFullYear());
-    $$("[data-wa]").forEach(a => { a.href = `https://wa.me/${S.whatsapp}?text=${encodeURIComponent(t("wa.msg", { brand: S.brand }))}`; a.target = "_blank"; a.rel = "noopener"; });
+    waLinks();
     const tk = document.body.dataset.titleKey;
-    document.title = `${AR() ? S.brandAr : S.brand} — ${t(tk || "meta.title")}`;
+    document.title = plain(`${AR() ? S.brandAr : S.brand} — ${t(tk || "meta.title")}`);
     onLang.forEach(fn => { try { fn(); } catch (err) { console.error(err); } });
-    try { localStorage.setItem("lang", lang); } catch {}
+    ss.set("am_lang", lang);
     reveal();
   }
-  $("#langBtn").addEventListener("click", () => { lang = AR() ? "en" : "ar"; applyLang(); });
+  // WhatsApp message in the reader's language (all three in the merged mode)
+  const waText = () => MX() ? [0, 1, 2].map(i => part(t("wa.msg", { brand: S.brand }), i)).join("\n") : t("wa.msg", { brand: AR() ? S.brandAr : S.brand });
+  function waLinks(root = document) {
+    $$("[data-wa]", root).forEach(a => { a.href = `https://wa.me/${S.whatsapp}?text=${encodeURIComponent(waText())}`; a.target = "_blank"; a.rel = "noopener"; });
+  }
+  function setLang(next) {
+    if (!LANGS.includes(next) || next === lang) return;
+    lang = next; applyLang();
+  }
+  const langMenu = $("#langMenu"), langBtn = $("#langBtn");
+  const menu = open => { langMenu.hidden = !open; langBtn.setAttribute("aria-expanded", open); };
+  langBtn.addEventListener("click", e => { e.stopPropagation(); menu(langMenu.hidden); });
+  langMenu.addEventListener("click", e => { const b = e.target.closest("[data-lang]"); if (b) { menu(false); setLang(b.dataset.lang); } });
+  document.addEventListener("click", e => { if (!e.target.closest("#langSel")) menu(false); });
+  addEventListener("keydown", e => { if (e.key === "Escape") menu(false); });
+
+  /* ---------- merged mode: turn marked groups into stacked EN / FR / AR ---------- */
+  const STACK_TAGS = /^(H1|H2|H3|H4|H5|H6|P|SUMMARY|LI|DD|DT|BLOCKQUOTE|FIGCAPTION|TD|TH)$/;
+  const STACK_SEL = ".line, .news-card > b, .nf-body > b, .nc-sum, .wz-txt b, .card h3, .sr-main b, .where-item b, .art-svc b, .nr-row-main b, .trk-row b, .inq-title b";
+  const NO_STACK = ".eyebrow, .btn, .chip, .nc-cat, .nc-top, .badge, .crumbs, .pill, .nr-lbl, .nr-pill, .lang-menu, .art-svc small, .field > span";
+  const PLAIN_TAGS = /^(OPTION|TITLE|TEXTAREA|SCRIPT|STYLE)$/;
+  const ATTRS = ["placeholder", "title", "aria-label", "alt"];
+  function triText(tn) {
+    const s = tn.nodeValue;
+    if (!s || s.indexOf(O) < 0) return;
+    const p = tn.parentNode; if (!p) return;
+    if (PLAIN_TAGS.test(p.nodeName) || p.closest && p.closest("svg")) { tn.nodeValue = plain(s); return; }
+    const frag = document.createDocumentFragment();
+    const only = s.replace(GROUP, "").trim() === "" && (s.match(GROUP) || []).length === 1;
+    let last = 0;
+    for (const m of s.matchAll(GROUP)) {
+      if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
+      const [, en, fr, ar] = m;
+      const box = document.createElement("tri-l");   // own tag: no page style aimed at <span> can catch it
+      box.className = "tri";
+      if (only && !(p.closest && p.closest(NO_STACK)) && (STACK_TAGS.test(p.nodeName) || (p.matches && p.matches(STACK_SEL)) || en.length > 70)) box.classList.add("stack");
+      [["l-en", en, "en"], ["l-fr", fr, "fr"], ["l-ar", ar, "ar"]].forEach(([cls, txt, l]) => {
+        if (!txt) return;
+        const sp = document.createElement("tri-t");
+        sp.className = cls; sp.lang = l; if (l === "ar") sp.dir = "rtl";
+        sp.textContent = txt; box.appendChild(sp);
+      });
+      frag.appendChild(box); last = m.index + m[0].length;
+    }
+    if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+    p.replaceChild(frag, tn);
+  }
+  function triAttr(el, a) { const v = el.getAttribute && el.getAttribute(a); if (v && v.indexOf(O) >= 0) el.setAttribute(a, plain(v)); }
+  function triScan(root) {
+    if (root.nodeType === 3) return triText(root);
+    if (root.nodeType !== 1) return;
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => n.nodeValue.indexOf(O) >= 0 ? 1 : 3 });
+    const list = []; while (w.nextNode()) list.push(w.currentNode);
+    list.forEach(triText);
+    ATTRS.forEach(a => { triAttr(root, a); root.querySelectorAll(`[${a}]`).forEach(el => triAttr(el, a)); });
+  }
+  new MutationObserver(ms => ms.forEach(m => {
+    if (m.type === "characterData") triText(m.target);
+    else if (m.type === "attributes") triAttr(m.target, m.attributeName);
+    else m.addedNodes.forEach(triScan);
+  })).observe(document.documentElement, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS });
+  // read the visible text of an element without losing the three languages (e.g. to restore a button label)
+  const labelOf = el => { const c = el.cloneNode(true); c.querySelectorAll(".tri").forEach(x => x.replaceWith(tri(...["l-en", "l-fr", "l-ar"].map(k => (x.querySelector("." + k) || {}).textContent || "")))); return c.textContent; };
 
   /* ---------- theme ---------- */
   const isLight = () => document.documentElement.dataset.theme === "light";
@@ -235,7 +324,7 @@
   $("#themeBtn").addEventListener("click", () => {
     const next = isLight() ? "dark" : "light";
     document.documentElement.dataset.theme = next;
-    try { localStorage.setItem("theme", next); } catch {}
+    ss.set("am_theme", next);
     onTheme.forEach(fn => fn());
   });
 
@@ -303,19 +392,23 @@
     const url = S.googleScriptUrl;
     let cached = null;
     try { cached = JSON.parse(sessionStorage.getItem("am_news2") || "null"); } catch {}
-    const remote = cached ? Promise.resolve(cached) : !url ? Promise.resolve({ items: [], hidden: [] }) :
+    const remote = cached ? Promise.resolve(cached) : !url ? Promise.resolve({ items: [], hidden: [], pcm: [] }) :
       Promise.race([
         fetch(url, { method: "POST", body: JSON.stringify({ action: "news" }) }).then(r => r.json())
-          .then(o => o.ok ? { items: o.items || [], hidden: o.hidden || [] } : { items: [], hidden: [] }),
+          .then(o => o.ok ? { items: o.items || [], hidden: o.hidden || [], pcm: o.pcm || [] } : { items: [], hidden: [], pcm: [] }),
         new Promise(res => setTimeout(() => res(null), 6000))
       ]).catch(() => null).then(o => {
         if (o) { try { sessionStorage.setItem("am_news2", JSON.stringify(o)); } catch {} }
-        return o || { items: [], hidden: [] };
+        return o || { items: [], hidden: [], pcm: [] };
       });
-    newsPromise = remote.then(({ items, hidden }) => {
+    newsPromise = remote.then(({ items, hidden, pcm }) => {
       const skip = new Set([...items.map(i => i.id), ...(hidden || [])]);
-      return [...items.map(n => ({ ...n, fromSheet: true })), ...local.filter(n => !skip.has(n.id))]
-        .filter(n => n.id && (n.title || n.titleAr))
+      // official headlines from the Presidency of the Council of Ministers: open on pcm.gov.lb
+      const official = (pcm || []).filter(p => /^https?:\/\//.test(p.url || "")).map(p => ({ ...p, category: "official", external: true,
+        title: p.title || "", titleFr: p.titleFr || "", summary: "", summaryAr: "", body: [], bodyAr: [],
+        source: { name: S.brand ? "PCM" : "", url: p.url } }));
+      return [...items.map(n => ({ ...n, fromSheet: true })), ...local.filter(n => !skip.has(n.id)), ...official]
+        .filter(n => n.id && (n.title || n.titleAr || n.titleFr))
         .map(n => ({ ...n, image: imgOk(n.image) }))
         .sort((a, b) => String(b.date).localeCompare(String(a.date)));
     });
@@ -328,7 +421,8 @@
     newsPromise = null;
     newsListeners.forEach(f => { try { f(); } catch (e) { console.error(e); } });
   }
-  const readMins = n => Math.max(1, Math.round(((AR() ? n.bodyAr : n.body) || []).join(" ").split(/\s+/).length / 200));
+  const bodyOf = n => (AR() ? n.bodyAr : FR() ? n.bodyFr : n.body) || n.body || n.bodyAr || [];
+  const readMins = n => Math.max(1, Math.round(bodyOf(n).join(" ").split(/\s+/).length / 200));
 
   // a broken picture link should never leave a broken-image icon behind
   document.addEventListener("error", e => {
@@ -342,17 +436,18 @@
 
   /* ---------- shared card markup ---------- */
   const newsCard = (n, i = 0) => `
-    <a class="news-card reveal tilt${n.image ? " has-img" : ""}" data-delay="${(i % 3) * 80}" data-nid="${esc(n.id)}" href="article.html?id=${encodeURIComponent(n.id)}">
+    <a class="news-card reveal tilt${n.image ? " has-img" : ""}${n.external ? " is-ext" : ""}" data-delay="${(i % 3) * 80}"${n.external ? ` href="${esc(n.url)}" target="_blank" rel="noopener"` : ` data-nid="${esc(n.id)}" href="article.html?id=${encodeURIComponent(n.id)}"`}>
       ${n.image ? `<span class="nc-img"><img src="${esc(n.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" /></span>` : ""}
       <span class="nc-top"><span class="nc-cat c-${esc(n.category)}">${t("ncat." + n.category)}</span><time>${fmtDate(n.date)}</time></span>
-      <b>${esc(pick(n.title, n.titleAr))}</b>
-      <span class="nc-sum">${esc(pick(n.summary, n.summaryAr))}</span>
-      <span class="nc-more">${t("common.readMore")} ${ICONS.arrow}</span>
+      <b>${esc(pick(n.title, n.titleAr, n.titleFr))}</b>
+      <span class="nc-sum">${esc(n.external ? t("news.pcmNote") : pick(n.summary, n.summaryAr, n.summaryFr))}</span>
+      <span class="nc-more">${n.external ? t("news.readSource") : t("common.readMore")} ${ICONS.arrow}</span>
     </a>`;
 
   window.AM = {
     S, SV, t, esc, pad, safe, ext, toast, ICONS, qs, page,
-    isAR: AR, lang: () => lang, pick, title, altTitle, subName, blurb, doc, docEn, svcById, fmtDate,
+    isAR: AR, isFR: FR, isMX: MX, lang: () => lang, setLang, pick, tri, plain, part, per, labelOf, bodyOf, waLinks,
+    title, altTitle, subName, blurb, doc, docEn, svcById, fmtDate,
     isLight, reduced, onLang, onTheme, reveal, news, newsCard, readMins, applyLang,
     newsRefresh, onNews: newsListeners
   };

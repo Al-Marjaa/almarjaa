@@ -1,11 +1,12 @@
 # Al Marjaa — المرجع
 
-A 3D, bilingual (English / العربية) website with light and dark modes for a Lebanese government-transactions office. The site is hosted free on **GitHub Pages**. Everything else runs on **your Google account**:
+A 3D website in four language modes — **English + Français + العربية together** (the default), English, Français or العربية — with light and dark modes, for a Lebanese government-transactions office. The site is hosted free on **GitHub Pages**. Everything else runs on **your Google account**:
 
 | What | Where it lives |
 |---|---|
 | Client files | Google Drive → `Al Marjaa — Client Files / <Client Name> / <Service> / files` |
-| Inquiries + statuses | Google Sheet **"Al Marjaa — Tracking"** (tabs: Inquiries, Files, Users, News) |
+| Inquiries + statuses | Google Sheet **"Al Marjaa — Tracking"** (tabs: Inquiries, Files, Users, News, PCM) |
+| Official news | Read every hour from the Presidency of the Council of Ministers into the **PCM** tab |
 | Accounts (log in / sign up) | The same Sheet (passwords stored scrambled, never readable) |
 | Emails | Your Gmail: new-file alerts to you, status updates and reset codes to clients |
 
@@ -40,7 +41,7 @@ Do all of this signed in as **oliviadiaasayah@gmail.com**.
    and upload `data.js` to GitHub again.
 6. **Right away, sign up on your live website with oliviadiaasayah@gmail.com.** That address automatically becomes the office (admin) account. Do this before you share the site.
 
-**Updating from the one-page version?** Paste the new `Code.gs` over the old one → Save → run **setup** again (it adds the **News** tab and keeps your data; allow any new permission Google asks for) → then do the redeploy below.
+**Updating from an earlier version?** Paste the new `Code.gs` over the old one → Save → run **setup** again. It keeps your data, adds any new tabs (News, PCM) and the hourly news reader. Google will ask for one new permission, *connect to an external service*, so the script can read the official news page; allow it. Then do the redeploy below.
 
 Changed `Code.gs` later? Use **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy**. The URL stays the same.
 
@@ -73,7 +74,7 @@ Log in on the site with the office account (oliviadiaasayah@gmail.com, or any ac
 - an **Edit post** button on every news card and article
 
 In the Newsroom you can:
-- **Write** a post in English and Arabic (switch with the language tabs; a green dot means that version is filled in), pick the type and related service, set the date, add a cover picture (drag it in, click to choose, or paste it) and a source.
+- **Write** a post in English, French and Arabic (switch with the language tabs; a green dot means that version is filled in; any language left empty shows another version to those readers), pick the type and related service, set the date, add a cover picture (drag it in, click to choose, or paste it) and a source.
 - Watch the **live preview** as a card or as the full article, in either language.
 - **Save draft** (only you see it) or **Publish** (goes live straight away). Ctrl/⌘+S saves.
 - From **Posts**: search, filter, switch a post on/off the site, edit, view or delete. Built-in posts can be **hidden** or **edited** (your edited copy replaces them; *Restore original* brings the built-in one back).
@@ -81,6 +82,18 @@ In the Newsroom you can:
 Pictures are stored in Drive under `Al Marjaa — Client Files / _News images` and shared "view only" so the website can show them. Posts are stored in the **News** tab of the Tracking sheet, so you can still edit them there if you prefer (blank line between paragraphs, tick `published`).
 
 Tip: `yoursite/news.html#newsroom` opens the Newsroom directly (it asks you to log in first).
+
+## 5. Languages and first visit
+- Every new visit opens in the **merged mode** (English, French and Arabic stacked) and in **light mode**.
+- The language button in the header (`EN·FR·ع`) switches to English only, French only or Arabic only; the sun/moon button switches to dark. Both choices last while the visitor browses the site, and reset on their next visit.
+- A link can force a language: add `?lang=en`, `?lang=fr`, `?lang=ar` or `?lang=mx` to any page address.
+
+## 6. Official news (Presidency of the Council of Ministers)
+- Every hour your Google script reads https://www.pcm.gov.lb/arabic/listingandpdf.aspx?pageid=21173, keeps each dated headline with its link, adds English and French titles with Google Translate, and stores them in the **PCM** tab. The website shows the newest 30 under the **Official** filter; each one opens the original page on pcm.gov.lb.
+- **Check it once:** in script.google.com choose **testPcm** → **Run** → open the log. It lists the headlines it found with their dates. If the list looks wrong (menu links, missing dates), send the log to whoever maintains the site.
+- **Hide a headline:** untick `published` in the PCM tab. To edit a translation, type over `title_en` / `title_fr`.
+- Only headlines and links are copied, never the full articles. The hourly reader is installed by **setup**; to stop it, open **Triggers** (clock icon) in script.google.com and delete `refreshPcm`.
+- Note: the pcm.gov.lb site asks automated tools not to crawl it. Reading one page once an hour for headlines is light, but it is your decision; to switch it off, delete the trigger above.
 
 ## Limits to know
 - Each upload can be up to **25 MB** in total (`maxUploadMB` in `data.js`). Bigger files can go by WhatsApp.

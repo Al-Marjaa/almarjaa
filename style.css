@@ -740,8 +740,8 @@ html[dir=rtl] .pn small{letter-spacing:0}
 html[dir=rtl] .art-title{letter-spacing:0;line-height:1.45}
 .art-layout{max-width:1180px;margin:0 auto;padding:10px 24px 40px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:50px;align-items:start}
 .art-body{max-width:720px;display:grid;gap:22px;font-size:1.12rem;line-height:1.85}
-.art-body p:first-child::first-letter{font-family:var(--display);font-size:3.2em;float:inline-start;line-height:.9;margin-inline-end:10px;color:var(--c);font-weight:800}
-html[dir=rtl] .art-body p:first-child::first-letter{font-size:inherit;float:none;margin:0;color:inherit;font-weight:inherit}
+.art-lang > p:first-child:not(.art-lang-tag)::first-letter,.art-lang-tag + p::first-letter{font-family:var(--display);font-size:3.2em;float:inline-start;line-height:.9;margin-inline-end:10px;color:var(--c);font-weight:800}
+html[dir=rtl] .art-lang > p:first-child:not(.art-lang-tag)::first-letter,.art-lang-tag + p::first-letter{font-size:inherit;float:none;margin:0;color:inherit;font-weight:inherit}
 .art-source{font-size:.92rem;color:var(--muted);padding-top:18px;border-top:1px solid var(--panel-b)}
 .art-source a{color:var(--em)}
 .art-side{position:sticky;top:110px;display:grid;gap:16px}
@@ -1149,3 +1149,91 @@ html[data-theme=light] .btn.btn-ghost:hover{background:rgba(154,117,51,.08)}
   .eyebrow::after{display:none}
   .eyebrow{letter-spacing:.2em}
 }
+
+/* =====================================================================
+   LANGUAGES — picker + merged (EN · FR · AR) rendering
+   ===================================================================== */
+.langsel{position:relative}
+.lang{min-width:46px;white-space:nowrap}
+html[data-lang=mx] .lang{font-size:.78rem;letter-spacing:.04em;padding-inline:14px}
+.lang-menu{position:absolute;top:calc(100% + 10px);inset-inline-end:0;z-index:40;min-width:230px;display:grid;gap:2px;padding:6px;border-radius:8px;
+  background:var(--bg2);border:1px solid rgba(201,169,110,.35);box-shadow:0 24px 50px -20px rgba(0,0,0,.45);animation:nrIn .25s ease}
+.lang-menu[hidden]{display:none}
+.lang-menu button{display:flex;align-items:baseline;gap:12px;padding:10px 14px;border:0;border-radius:5px;background:none;color:var(--text);text-align:start;cursor:pointer;font:500 .9rem var(--font)}
+.lang-menu button b{min-width:64px;font-weight:700;letter-spacing:.06em;color:var(--em)}
+.lang-menu button small{color:var(--muted);font-size:.82rem}
+.lang-menu button:hover,.lang-menu button[aria-checked=true]{background:rgba(201,169,110,.12)}
+.lang-menu button[aria-checked=true] small{color:var(--text)}
+.lang-menu button[dir=rtl]{font-family:var(--arabic)}
+
+/* inline groups: English · Français · العربية */
+.tri>*:not(:last-child)::after{content:"\00a0·\00a0";opacity:.45;font-style:normal}
+.tri .l-fr{font-style:italic}
+.tri .l-ar{font-family:var(--arabic)}
+/* stacked groups: one line per language */
+.tri.stack{display:block}
+.tri.stack>*{display:block}
+.tri.stack>*::after{content:none}
+.tri.stack .l-fr{opacity:.82;margin-top:.35em}
+.tri.stack .l-ar{direction:rtl;text-align:end;margin-top:.35em;color:inherit}
+p .tri.stack .l-fr,p .tri.stack .l-ar,.nc-sum .tri.stack>*:not(.l-en){font-size:.96em}
+/* headings: English large, French and Arabic as elegant sub-lines */
+:is(h1,h2,.ph-title,.art-title) .tri.stack :is(.l-fr,.l-ar),.hero-title .line .tri.stack :is(.l-fr,.l-ar){font-size:.4em;line-height:1.35;letter-spacing:0;margin-top:.3em}
+:is(h1,h2,.ph-title,.art-title,.hero-title) .tri.stack .l-ar{font-family:var(--arabic-display);color:var(--em);font-weight:700}
+:is(h1,h2,.ph-title,.art-title,.hero-title) .tri.stack .l-fr{font-family:var(--display);font-weight:500}
+.hero-title .line{overflow:visible}
+.hero-title .line .tri.stack .l-ar{font-size:.36em}
+.hero-title .grad .tri.stack .l-fr,.hero-title .grad .tri.stack .l-ar{-webkit-text-fill-color:currentColor;color:var(--em)}
+:is(h3,h4,.card h3,.news-card>b,.nf-body>b,.wz-txt b,.sr-main b,.where-item b,.art-svc b,.trk-row b) .tri.stack :is(.l-fr,.l-ar){font-size:.72em;line-height:1.4;margin-top:.2em;font-weight:500}
+:is(h3,h4,.card h3,.news-card>b,.nf-body>b) .tri.stack .l-ar{font-family:var(--arabic-display);font-weight:700;color:var(--em)}
+summary .tri.stack :is(.l-fr,.l-ar){font-size:.88em;font-weight:500}
+/* small UI stays on one line */
+.btn .tri,.chip .tri,.nav-links .tri,.nc-cat .tri,.badge .tri,.pill .tri,.eyebrow .tri,.crumbs .tri{display:inline}
+.btn .tri .l-fr,.btn .tri .l-ar,.chip .tri .l-fr,.nav-links .tri .l-fr,.eyebrow .tri .l-fr{font-style:normal}
+html[data-lang=mx] .btn{text-transform:none;letter-spacing:.04em;font-size:.82rem}
+html[data-lang=mx] .btn-small{font-size:.74rem}
+html[data-lang=mx] .nav-links{gap:18px}
+html[data-lang=mx] .nav-links a{font-size:.8rem}
+html[data-lang=mx] .eyebrow{letter-spacing:.18em}
+.alt:empty{display:none}
+/* merged article: each language as its own section */
+.art-lang{display:grid;gap:22px}
+.art-lang + .art-lang{margin-top:34px;padding-top:30px;border-top:1px solid rgba(201,169,110,.25)}
+.art-lang[lang=ar]{font-family:var(--arabic)}
+.art-lang-tag{font-size:.74rem!important;letter-spacing:.3em;text-transform:uppercase;color:var(--em);font-weight:700}
+.art-lang[lang=ar] .art-lang-tag{letter-spacing:0;font-size:.9rem!important}
+.marquee-track em{font-style:italic;opacity:.75;margin-inline-start:.4em}
+@media (max-width:1180px){ html[data-lang=mx] .nav-links{gap:12px} html[data-lang=mx] .nav-links a{font-size:.74rem} }
+/* the header stays compact in the merged mode: each nav label is a tiny 3-line stack */
+.nav-links .tri,.nav-cta .tri,.lang-menu .tri{display:inline-flex!important;flex-direction:column;line-height:1.12}
+.nav-links .tri>*::after,.nav-cta .tri>*::after{content:none}
+.nav-links .tri :is(.l-fr,.l-ar),.nav-cta .tri :is(.l-fr,.l-ar){font-size:.72em;opacity:.72;font-style:normal}
+.nav-links .tri .l-ar{text-align:start}
+html[data-lang=mx] .nav-links a{font-size:.86rem}
+html[data-lang=mx] .nav-cta{padding-block:7px}
+.hero-tri{display:grid;gap:4px;margin:-8px 0 26px}
+.hero-tri .ht-fr{font-family:var(--display);font-style:italic;font-weight:500;font-size:clamp(1.4rem,2.6vw,2.1rem);line-height:1.2;color:var(--text);opacity:.85}
+.hero-tri .ht-ar{font-family:var(--arabic-display);font-weight:700;font-size:clamp(1.4rem,2.6vw,2.1rem);line-height:1.5;color:var(--em);text-align:end;justify-self:start}
+.nc-cat.c-official{color:#9b2335;background:color-mix(in srgb,#c8102e 12%,transparent)}
+html:not([data-theme=light]) .nc-cat.c-official{color:#ff8a8a;background:rgba(200,16,46,.16)}
+.news-card.is-ext b,.news-feature.is-ext b{font-family:var(--arabic-display)}
+html[data-lang=en] .news-card.is-ext b,html[data-lang=fr] .news-card.is-ext b,html[data-lang=en] .news-feature.is-ext b,html[data-lang=fr] .news-feature.is-ext b{font-family:var(--display)}
+.news-card.is-ext .nc-more::before{content:"";width:6px;height:6px;border-radius:50%;background:#c8102e;margin-inline-end:2px}
+html[data-lang=mx] .eyebrow{flex-wrap:wrap;row-gap:4px}
+html[data-lang=mx] .eyebrow .tri .l-ar{letter-spacing:0;font-size:1.12em}
+:is(h1,h2,.ph-title,.art-title) .tri.stack :is(.l-fr,.l-ar),.hero-title .line .tri.stack :is(.l-fr,.l-ar){font-size:max(.4em,1.08rem)}
+:is(h1,h2,.ph-title,.art-title) .tri.stack .l-ar{font-size:max(.44em,1.2rem)}
+
+tri-l,tri-t{display:inline}
+tri-l.stack,tri-l.stack>tri-t{display:block}
+/* stacked labels inside small tab buttons */
+.seg button .tri{display:inline-flex!important;flex-direction:column;line-height:1.15}
+.seg button .tri>*::after{content:none}
+.seg button .tri :is(.l-fr,.l-ar){font-size:.78em;opacity:.8}
+.auth-card .tri.stack .l-ar,.modal-card .tri.stack .l-ar{text-align:center}
+.nr-tabs button .tri,.nr-seg button .tri,.nr-stat span .tri{display:inline-flex!important;flex-direction:column;line-height:1.15}
+.nr-tabs button .tri>*::after,.nr-seg button .tri>*::after{content:none}
+.nr-tabs button .tri :is(.l-fr,.l-ar),.nr-seg button .tri :is(.l-fr,.l-ar){font-size:.78em;opacity:.8}
+.nr-tabs{max-width:100%}
+.nr-tabs button{min-width:0}
+.nr-inner{overflow-x:clip}

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Manrope:wght@400;500;600;700&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <script>(function(){var h=document.documentElement;h.setAttribute("data-theme","dark");try{var q=new URLSearchParams(location.search).get("lang");var l=q==="ar"||q==="en"?q:localStorage.getItem("lang");if(l==="ar"){h.lang="ar";h.dir="rtl";}if(localStorage.getItem("theme")==="light")h.setAttribute("data-theme","light");}catch(e){}})();</script>
+  <script>(function(){var h=document.documentElement,l="mx",th="light";try{var q=new URLSearchParams(location.search).get("lang"),s=sessionStorage;l=/^(mx|en|fr|ar)$/.test(q)?q:(/^(mx|en|fr|ar)$/.test(s.getItem("am_lang"))?s.getItem("am_lang"):"mx");if(s.getItem("am_theme")==="dark")th="dark";}catch(e){}h.setAttribute("data-theme",th);h.setAttribute("data-lang",l);if(l==="ar"){h.lang="ar";h.dir="rtl";}else if(l!=="mx"){h.lang=l;}})();</script>
 </head>
 <body data-page="about" data-scene="soft" data-title-key="meta.about">
   <main id="page" class="inner"></main>

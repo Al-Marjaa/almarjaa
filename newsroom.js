@@ -74,7 +74,48 @@
     "nr.today": "اليوم"
   });
 
+  Object.assign(I18N.fr, {
+    "nr.fab": "Rédaction", "nr.eyebrow": "Réservé au bureau", "nr.title": "Rédaction", "nr.close": "Fermer",
+    "nr.tab.list": "Articles", "nr.tab.edit": "Écrire", "nr.new": "Nouvel article", "nr.editThis": "Modifier l'article",
+    "nr.search": "Rechercher des articles…", "nr.f.all": "Tout", "nr.f.live": "En ligne", "nr.f.draft": "Brouillons", "nr.f.builtin": "Intégrés",
+    "nr.s.live": "En ligne sur le site", "nr.s.draft": "Brouillons et masqués", "nr.s.builtin": "Articles intégrés",
+    "nr.st.live": "En ligne", "nr.st.draft": "Brouillon", "nr.st.builtin": "Intégré", "nr.st.hidden": "Masqué",
+    "nr.edit": "Modifier", "nr.view": "Voir", "nr.del": "Supprimer", "nr.sure": "Sûr ? Cliquez encore", "nr.reset": "Restaurer l'original",
+    "nr.hide": "Masquer", "nr.show": "Afficher", "nr.empty": "Aucun article ne correspond.", "nr.loading": "Chargement des articles…",
+    "nr.lang.en": "English", "nr.lang.fr": "Français", "nr.lang.ar": "العربية",
+    "nr.ph.title": "Écrivez un titre…", "nr.summary": "Résumé", "nr.ph.summary": "Une ou deux phrases affichées sur la carte",
+    "nr.body": "Article", "nr.ph.body": "Écrivez l'article ici.\n\nLaissez une ligne vide entre les paragraphes.",
+    "nr.words": "{n} mots · {m} min de lecture",
+    "nr.missingList": "Pas encore rédigé en : {list}. Ces lecteurs verront une autre version.",
+    "nr.type": "Type", "nr.svc": "Service lié", "nr.none": "Aucun", "nr.date": "Date",
+    "nr.cover": "Image de couverture", "nr.drop": "Déposez une image ici, cliquez pour choisir, ou collez-la (Ctrl/⌘+V)",
+    "nr.url": "…ou collez un lien d'image (https://)", "nr.rmimg": "Retirer l'image",
+    "nr.imgbad": "Ce fichier n'est pas une image lisible. Essayez un JPG ou un PNG.",
+    "nr.source": "Source (facultatif)", "nr.srcname": "Nom de la source", "nr.srcurl": "Lien",
+    "nr.preview": "Aperçu en direct", "nr.pv.card": "Carte", "nr.pv.article": "Article",
+    "nr.draft": "Enregistrer le brouillon", "nr.publish": "Publier", "nr.update": "Mettre à jour",
+    "nr.saving": "Enregistrement…", "nr.saved.draft": "Enregistré comme brouillon.", "nr.saved.live": "Publié. L'article est en ligne.",
+    "nr.deleted": "Supprimé.", "nr.restored": "Original restauré.", "nr.hidden": "Masqué du site.", "nr.shown": "De nouveau en ligne.",
+    "nr.err.title": "Ajoutez d'abord un titre (dans au moins une langue).",
+    "nr.err.forbidden": "Seul le compte du bureau peut publier des actualités.",
+    "nr.err.image": "Google Drive n'a pas pu partager l'image. Réessayez, ou collez plutôt un lien d'image.",
+    "nr.err.update": "Votre script Google est plus ancien que le site. Collez le nouveau Code.gs et déployez une nouvelle version.",
+    "nr.err.generic": "Un problème est survenu. Veuillez réessayer.",
+    "nr.restoredDraft": "Votre brouillon non enregistré a été récupéré.", "nr.fresh": "Repartir de zéro",
+    "nr.untitled": "Sans titre", "nr.shortcut": "Ctrl/⌘ + S pour enregistrer",
+    "nr.builtinNote": "Ceci est un article intégré. L'enregistrer crée votre propre copie, qui le remplace sur le site.",
+    "nr.today": "Aujourd'hui"
+  });
+  I18N.en["nr.lang.fr"] = "Français"; I18N.ar["nr.lang.fr"] = "Français";
+  I18N.en["nr.missingList"] = "Not written yet in {list}. Those readers will see another version.";
+  I18N.ar["nr.missingList"] = "لم يُكتب بعد بـ{list}. سيرى هؤلاء القرّاء نسخة أخرى.";
+  I18N.en["nr.err.title"] = "Add a headline first (in at least one language).";
+  I18N.ar["nr.err.title"] = "أضف عنواناً أولاً (بلغة واحدة على الأقل).";
+
   const t = AM.t, esc = AM.esc, I = AM.ICONS, SV = AM.SV;
+  const SUF = { en: "", fr: "Fr", ar: "Ar" };
+  const LNAME = { en: { en: "English", fr: "French", ar: "Arabic" }, fr: { en: "anglais", fr: "français", ar: "arabe" }, ar: { en: "الإنكليزية", fr: "الفرنسية", ar: "العربية" } };
+  const defLang = () => AM.isAR() ? "ar" : AM.isFR() ? "fr" : "en";
   const $ = (q, el = document) => el.querySelector(q);
   const $$ = (q, el = document) => [...el.querySelectorAll(q)];
   const CATS = ["news", "guide", "announcement"];
@@ -90,13 +131,14 @@
   let admin = false, wantOpen = location.hash === "#newsroom";
   let posts = [], loaded = false, loading = null;
   let view = "list", filter = "all", query = "";
-  let ed = null, edLang = AM.isAR() ? "ar" : "en", pvMode = "card", busy = false;
+  let ed = null, edLang = defLang(), pvMode = "card", busy = false;
 
   /* ---------------- data ---------------- */
   const toPost = n => ({
     id: n.id, date: n.date || today(), category: CATS.includes(n.category) ? n.category : "news", service: n.service || "",
-    title: n.title || "", titleAr: n.titleAr || "", summary: n.summary || "", summaryAr: n.summaryAr || "",
-    body: (n.body || []).join("\n\n"), bodyAr: (n.bodyAr || []).join("\n\n"),
+    title: n.title || "", titleAr: n.titleAr || "", titleFr: n.titleFr || "",
+    summary: n.summary || "", summaryAr: n.summaryAr || "", summaryFr: n.summaryFr || "",
+    body: (n.body || []).join("\n\n"), bodyAr: (n.bodyAr || []).join("\n\n"), bodyFr: (n.bodyFr || []).join("\n\n"),
     image: n.image || "", sourceName: (n.source && n.source.name) || "", sourceUrl: (n.source && n.source.url) || "",
     published: n.published !== false
   });
@@ -191,7 +233,7 @@
       if (filter === "live" && st !== "live") return false;
       if (filter === "draft" && !(st === "draft" || st === "hidden")) return false;
       if (filter === "builtin" && st !== "builtin") return false;
-      return !q || [p.title, p.titleAr, p.summary, p.summaryAr, p.id].join(" ").toLowerCase().includes(q);
+      return !q || [p.title, p.titleAr, p.titleFr, p.summary, p.summaryAr, p.summaryFr, p.id].join(" ").toLowerCase().includes(q);
     });
     box.innerHTML = `
       <div class="nr-stats">
@@ -208,7 +250,7 @@
   }
   function row(p, i) {
     const st = stateOf(p), s = AM.svcById(p.service);
-    const ttl = AM.pick(p.title, p.titleAr) || t("nr.untitled");
+    const ttl = AM.pick(p.title, p.titleAr, p.titleFr) || t("nr.untitled");
     const thumb = p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" />` : (s ? I[s.icon] : I.news);
     const toggle = st === "builtin" ? `<button type="button" class="nr-act" data-hide="${esc(p.id)}">${t("nr.hide")}</button>`
       : `<label class="nr-switch" title="${t(p.published ? "nr.hide" : "nr.show")}"><input type="checkbox" data-toggle="${esc(p.id)}"${p.published ? " checked" : ""} /><span></span></label>`;
@@ -233,32 +275,34 @@
   function newPost(force) {
     const saved = !force && store.get("draft");
     ed = saved && saved.isNew ? { ...saved, restored: true }
-      : { isNew: true, id: "", date: today(), category: "news", service: "", title: "", titleAr: "", summary: "", summaryAr: "",
-          body: "", bodyAr: "", image: "", sourceName: "", sourceUrl: "", published: true };
-    edLang = AM.isAR() ? "ar" : "en";
+      : { isNew: true, id: "", date: today(), category: "news", service: "", title: "", titleAr: "", titleFr: "", summary: "", summaryAr: "", summaryFr: "",
+          body: "", bodyAr: "", bodyFr: "", image: "", sourceName: "", sourceUrl: "", published: true };
+    edLang = defLang();
   }
   function editPost(id) {
     const p = posts.find(x => x.id === id) || (BUILTIN.get(id) && { ...BUILTIN.get(id), origin: "builtin", builtin: true });
     if (!p) return;
     ed = { ...toPost(p), isNew: false, builtinNote: p.origin === "builtin" };
     if (p.origin === "builtin") ed.published = true;
-    edLang = AM.isAR() ? (ed.titleAr || !ed.title ? "ar" : "en") : (ed.title || !ed.titleAr ? "en" : "ar");
+    edLang = defLang();
+    if (!(ed["title" + SUF[edLang]] || "").trim()) edLang = ["en", "fr", "ar"].find(L => (ed["title" + SUF[L]] || "").trim()) || edLang;
     open("edit");
   }
-  const F = k => edLang === "ar" ? k + "Ar" : k;    // which field the language tab edits
-  const filled = L => { const s = L === "ar" ? "Ar" : ""; return !!(ed["title" + s].trim() && ed["body" + s].trim()); };
+  const F = k => k + SUF[edLang];    // which field the language tab edits
+  const filled = L => !!((ed["title" + SUF[L]] || "").trim() && (ed["body" + SUF[L]] || "").trim());
   const persist = () => { if (ed && ed.isNew) { const c = { ...ed }; delete c.imageData; delete c.imagePreview; delete c.restored; store.set("draft", c); } };
 
   function renderEditor() {
     const box = $(".nr-edit", root);
-    const otherEmpty = !(ed[edLang === "ar" ? "title" : "titleAr"] || "").trim();
+    const UI = AM.isAR() ? "ar" : AM.isFR() ? "fr" : "en";
+    const empty = ["en", "fr", "ar"].filter(L => !(ed["title" + SUF[L]] || "").trim()).map(L => LNAME[UI][L]);
     const cover = ed.imagePreview || ed.image;
     box.innerHTML = `
       <form class="nr-form" novalidate>
         ${ed.restored ? `<p class="nr-note">${t("nr.restoredDraft")} <button type="button" class="nr-link" data-fresh>${t("nr.fresh")}</button></p>` : ""}
         ${ed.builtinNote ? `<p class="nr-note">${t("nr.builtinNote")}</p>` : ""}
         <div class="nr-lang" role="tablist">
-          ${["en", "ar"].map(L => `<button type="button" data-lang="${L}" class="${L === edLang ? "active" : ""}${filled(L) ? " done" : ""}"><i></i>${t("nr.lang." + L)}</button>`).join("")}
+          ${["en", "fr", "ar"].map(L => `<button type="button" data-lang="${L}" class="${L === edLang ? "active" : ""}${filled(L) ? " done" : ""}"><i></i>${t("nr.lang." + L)}</button>`).join("")}
         </div>
         <div class="nr-write" dir="${edLang === "ar" ? "rtl" : "ltr"}" lang="${edLang}">
           <textarea class="nr-title" data-f="title" rows="1" placeholder="${esc(I18N[edLang]["nr.ph.title"])}">${esc(ed[F("title")])}</textarea>
@@ -268,7 +312,7 @@
             <textarea data-f="body" class="nr-body" rows="9" placeholder="${esc(I18N[edLang]["nr.ph.body"])}">${esc(ed[F("body")])}</textarea></label>
           <p class="nr-meta"><span data-words></span><span class="nr-kbd">${t("nr.shortcut")}</span></p>
         </div>
-        ${otherEmpty && ed[F("title")].trim() ? `<p class="nr-hint">${t(edLang === "ar" ? "nr.missing.en" : "nr.missing.ar")}</p>` : ""}
+        ${empty.length && empty.length < 3 ? `<p class="nr-hint">${t("nr.missingList", { list: empty.join(UI === "ar" ? " و" : ", ") })}</p>` : ""}
 
         <div class="nr-group"><span class="nr-lbl">${t("nr.type")}</span>
           <div class="nr-cats">${CATS.map(c => `<button type="button" data-cat="${c}" class="nc-cat c-${c}${ed.category === c ? " on" : ""}">${t("ncat." + c)}</button>`).join("")}</div></div>
@@ -319,14 +363,14 @@
   /* live preview, drawn in the editor's language */
   function preview() {
     const pv = $(".nr-pv", root); if (!pv || !ed) return;
-    const L = edLang, AR = L === "ar", T = I18N[L];
-    const P = (en, ar) => AR ? (ar || en) : (en || ar);
+    const L = edLang, AR = L === "ar", FRL = L === "fr", T = I18N[L];
+    const P = (en, ar, fr) => AR ? (ar || en || fr) : FRL ? (fr || en || ar) : (en || ar || fr);
     const s = AM.svcById(ed.service);
     const cover = ed.imagePreview || (https(ed.image) ? ed.image : "");
-    const date = ed.date ? new Intl.DateTimeFormat(AR ? "ar-LB" : "en-GB", { day: "numeric", month: "long", year: "numeric" }).format(new Date(ed.date + "T12:00")) : "";
-    const title = P(ed.title, ed.titleAr) || T["nr.untitled"];
-    const summary = P(ed.summary, ed.summaryAr);
-    const body = String(P(ed.body, ed.bodyAr) || "").split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
+    const date = ed.date ? new Intl.DateTimeFormat(AR ? "ar-LB" : FRL ? "fr-FR" : "en-GB", { day: "numeric", month: "long", year: "numeric" }).format(new Date(ed.date + "T12:00")) : "";
+    const title = P(ed.title, ed.titleAr, ed.titleFr) || T["nr.untitled"];
+    const summary = P(ed.summary, ed.summaryAr, ed.summaryFr);
+    const body = String(P(ed.body, ed.bodyAr, ed.bodyFr) || "").split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
     const cat = `<span class="nc-cat c-${ed.category}">${T["ncat." + ed.category]}</span>`;
     pv.setAttribute("dir", AR ? "rtl" : "ltr"); pv.setAttribute("lang", L);
     pv.innerHTML = pvMode === "card" ? `
@@ -344,7 +388,7 @@
         ${summary ? `<p class="nr-pv-sum">${esc(summary)}</p>` : ""}
         ${body.map(p => `<p>${esc(p)}</p>`).join("") || `<p class="muted">…</p>`}
         ${ed.sourceUrl ? `<p class="art-source">${T["common.source"]}: <a>${esc(ed.sourceName || ed.sourceUrl)}</a></p>` : ""}
-        ${s ? `<p class="nr-pv-svc">${I[s.icon]}<span>${esc(AR ? s.ar : s.title)}</span></p>` : ""}
+        ${s ? `<p class="nr-pv-svc">${I[s.icon]}<span>${esc(AR ? s.ar : FRL ? s.fr : s.title)}</span></p>` : ""}
       </div>`;
   }
 
@@ -374,9 +418,9 @@
 
   async function submit(publish) {
     if (busy || !ed) return;
-    if (!ed.title.trim() && !ed.titleAr.trim()) { AM.toast(t("nr.err.title"), true); const ti = $(".nr-title", root); ti && ti.focus(); return; }
+    if (!["title", "titleAr", "titleFr"].some(k => (ed[k] || "").trim())) { AM.toast(t("nr.err.title"), true); const ti = $(".nr-title", root); ti && ti.focus(); return; }
     busy = true;
-    const btn = $(`[data-save="${publish ? "publish" : "draft"}"]`, root), lbl = btn && btn.textContent;
+    const btn = $(`[data-save="${publish ? "publish" : "draft"}"]`, root), lbl = btn && AM.labelOf(btn);
     $$("[data-save]", root).forEach(b => b.disabled = true);
     if (btn) { btn.classList.add("busy"); btn.textContent = t("nr.saving"); }
     try {
@@ -425,7 +469,7 @@
     if (x.dataset.save) return submit(x.dataset.save === "publish");
     if (x.dataset.hide) return quick(x, () => save({ ...toPost(posts.find(p => p.id === x.dataset.hide)), published: false }, "nr.hidden"));
     if (x.dataset.del) {
-      if (!x.classList.contains("armed")) { x.classList.add("armed"); x.dataset.label = x.textContent; x.textContent = t("nr.sure"); setTimeout(() => { if (x.isConnected) { x.classList.remove("armed"); x.textContent = x.dataset.label; } }, 3200); return; }
+      if (!x.classList.contains("armed")) { x.classList.add("armed"); x.dataset.label = AM.labelOf(x); x.textContent = t("nr.sure"); setTimeout(() => { if (x.isConnected) { x.classList.remove("armed"); x.textContent = x.dataset.label; } }, 3200); return; }
       const id = x.dataset.del, was = BUILTIN.has(id);
       return quick(x, async () => { await A.api("newsDelete", { id }); AM.newsRefresh(); await load(true); AM.toast(t(was ? "nr.restored" : "nr.deleted")); ed = null; show("list"); });
     }

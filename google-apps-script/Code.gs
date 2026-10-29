@@ -5,6 +5,8 @@
  *    • Google Drive  → Al Marjaa — Client Files / <Client Name> / <Service> / files
  *    • Google Sheet  → "Al Marjaa — Tracking" (Inquiries, Files, Users tabs)
  *    • Gmail         → notifications + password-reset codes
+ *    • News          → your own posts (News tab) + headlines read every hour
+ *                      from the Presidency of the Council of Ministers (PCM tab)
  *
  *  Setup (details in README):
  *    1. Paste this file into script.google.com (signed in as the office account)
@@ -24,6 +26,15 @@ const CONFIG = {
   EMAIL_CLIENT_ON_STATUS_CHANGE: true
 };
 
+// Official news: the listing page read every hour (headlines + links only)
+const PCM = {
+  URL: "https://www.pcm.gov.lb/arabic/listingandpdf.aspx?pageid=21173",
+  NAME_AR: "رئاسة مجلس الوزراء",
+  KEEP: 80,          // rows kept in the PCM tab
+  SHOW: 30,          // newest published rows sent to the website
+  TRANSLATE: true    // add English + French titles with Google Translate
+};
+
 const STATUSES = ["received", "review", "missing", "progress", "ready", "completed", "cancelled"];
 const STATUS_TEXT = {
   received:  ["Received", "تم الاستلام"],
@@ -39,7 +50,9 @@ const INQ_COLS  = ["id", "created_at", "updated_at", "status", "status_note", "n
                    "user_id", "folder_id", "folder_url"];
 const FILE_COLS = ["id", "inquiry_id", "user_id", "doc_index", "label", "label_ar", "file_name", "file_id", "size", "created_at"];
 const NEWS_COLS = ["id", "date", "category", "service_id", "title", "title_ar", "summary", "summary_ar",
-                   "body", "body_ar", "source_name", "source_url", "published", "image"];
+                   "body", "body_ar", "source_name", "source_url", "published", "image",
+                   "title_fr", "summary_fr", "body_fr"];
+const PCM_COLS  = ["id", "date", "title_ar", "title_en", "title_fr", "url", "image", "fetched_at", "published"];
 const USER_COLS = ["id", "email", "name", "phone", "role", "created_at", "last_login", "salt", "hash"];
 
 /* =====================================================================
@@ -66,6 +79,10 @@ function setup() {
   newsSh.getRange(2, NEWS_COLS.indexOf("published") + 1, nrows, 1)
     .setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
   ["body", "body_ar", "summary", "summary_ar"].forEach(c => newsSh.setColumnWidth(NEWS_COLS.indexOf(c) + 1, 320));
+  const pcmSh = ensureSheet_(ss, "PCM", PCM_COLS);
+  pcmSh.getRange(2, PCM_COLS.indexOf("published") + 1, Math.max(pcmSh.getMaxRows() - 1, 1), 1)
+    .setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
+  ["title_ar", "title_en", "title_fr"].forEach(c => pcmSh.setColumnWidth(PCM_COLS.indexOf(c) + 1, 340));
   const def = ss.getSheetByName("Sheet1"); if (def && ss.getSheets().length > 1) ss.deleteSheet(def);
 
   // status dropdown + colours on the Inquiries tab
@@ -88,6 +105,12 @@ function setup() {
   if (!ScriptApp.getProjectTriggers().some(t => t.getHandlerFunction() === "onSheetEdit")) {
     ScriptApp.newTrigger("onSheetEdit").forSpreadsheet(ss).onEdit().create();
   }
+  // read the official news every hour
+  if (!ScriptApp.getProjectTriggers().some(t => t.getHandlerFunction() === "refreshPcm")) {
+    ScriptApp.newTrigger("refreshPcm").timeBased().everyHours(1).create();
+  }
+  try { const r = refreshPcm(); Logger.log("Official news: " + r.found + " headlines found, " + r.added + " new."); }
+  catch (e) { Logger.log("Official news could not be read yet: " + e); }
   MailApp.getRemainingDailyQuota();   // asks for the Gmail permission now
   Logger.log("Ready. Tracking sheet: " + ss.getUrl());
   Logger.log("Drive folder: " + root.getUrl());
@@ -186,7 +209,7 @@ const ACTIONS = {
     const all = rows_("News");
     const items = all.filter(r => truthy_(r.published) && (r.title || r.title_ar)).map(r => newsOut_(r));
     const hidden = all.filter(r => !truthy_(r.published)).map(r => String(r.id));   // hides built-in posts too
-    return { items, hidden };
+    return { items, hidden, pcm: pcmOut_() };
   },
 
   /* ---------- office: write news from the website ---------- */
@@ -200,13 +223,13 @@ const ACTIONS = {
     admin_(d.token);
     const p = d.post || {};
     const txt = v => String(v == null ? "" : v).trim();
-    if (!txt(p.title) && !txt(p.titleAr)) throw fail_("missing_fields");
+    if (!txt(p.title) && !txt(p.titleAr) && !txt(p.titleFr)) throw fail_("missing_fields");
     return withLock_(() => {
       ensureSheet_(sheet_(), "News", NEWS_COLS);
       const all = rows_("News");
       let id = slug_(p.id);
       if (!id) {
-        const base = slug_(p.title).slice(0, 48) || "post";
+        const base = (slug_(p.title) || slug_(p.titleFr)).slice(0, 48) || "post";
         id = base; let n = 2;
         while (all.some(r => String(r.id) === id)) id = base + "-" + n++;
       }
@@ -219,6 +242,7 @@ const ACTIONS = {
         category: ["news", "guide", "announcement"].indexOf(p.category) >= 0 ? p.category : "news",
         service_id: txt(p.service), title: txt(p.title), title_ar: txt(p.titleAr),
         summary: txt(p.summary), summary_ar: txt(p.summaryAr), body: paras(p.body), body_ar: paras(p.bodyAr),
+        title_fr: txt(p.titleFr), summary_fr: txt(p.summaryFr), body_fr: paras(p.bodyFr),
         source_name: txt(p.sourceName), source_url: /^https?:\/\//.test(txt(p.sourceUrl)) ? txt(p.sourceUrl) : "",
         published: !!p.published, image
       };
@@ -365,6 +389,151 @@ function iso_(v) { return v instanceof Date ? v.toISOString() : (v ? new Date(v)
 function rootFolder_() { return sub_(DriveApp.getRootFolder(), CONFIG.ROOT_FOLDER_NAME); }
 function sub_(parent, name) { const it = parent.getFoldersByName(name); return it.hasNext() ? it.next() : parent.createFolder(name); }
 
+/* =====================================================================
+   OFFICIAL NEWS — Presidency of the Council of Ministers
+   refreshPcm runs every hour (installed by setup). It reads the listing
+   page, keeps dated headlines + links, adds English / French titles and
+   stores them in the PCM tab. Untick "published" to hide a headline.
+   Run testPcm from the editor to see what the reader finds right now.
+   ===================================================================== */
+function refreshPcm() {
+  const res = UrlFetchApp.fetch(PCM.URL, { muteHttpExceptions: true, followRedirects: true,
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; AlMarjaaNews/1.0; hourly headline reader)" } });
+  if (res.getResponseCode() !== 200) throw new Error("PCM page answered " + res.getResponseCode());
+  const found = parsePcm_(res.getContentText("UTF-8"), PCM.URL);
+  return withLock_(() => {
+    const sh = ensureSheet_(sheet_(), "PCM", PCM_COLS);
+    const have = {}; rows_("PCM").forEach(r => have[String(r.url)] = true);
+    let added = 0;
+    found.slice().reverse().forEach(it => {               // oldest first, so the newest ends at the bottom
+      if (have[it.url]) return;
+      let en = "", fr = "";
+      if (PCM.TRANSLATE) {
+        try { en = LanguageApp.translate(it.title, "ar", "en"); } catch (e) {}
+        try { fr = LanguageApp.translate(it.title, "ar", "fr"); } catch (e) {}
+      }
+      append_("PCM", { id: "pcm-" + hashId_(it.url), date: it.date || today_(), title_ar: it.title, title_en: en, title_fr: fr,
+        url: it.url, image: it.image || "", fetched_at: new Date(), published: true });
+      have[it.url] = true; added++;
+    });
+    // keep the tab short: drop the oldest rows beyond PCM.KEEP
+    const extra = sh.getLastRow() - 1 - PCM.KEEP;
+    if (extra > 0) sh.deleteRows(2, extra);
+    return { found: found.length, added };
+  });
+}
+
+function testPcm() {
+  const res = UrlFetchApp.fetch(PCM.URL, { muteHttpExceptions: true, followRedirects: true });
+  Logger.log("HTTP " + res.getResponseCode() + ", " + res.getContentText("UTF-8").length + " characters");
+  const items = parsePcm_(res.getContentText("UTF-8"), PCM.URL);
+  Logger.log(items.length + " headlines found. First 10:");
+  items.slice(0, 10).forEach((it, i) => Logger.log((i + 1) + ". [" + (it.date || "no date") + "] " + it.title + "\n    " + it.url));
+}
+
+function pcmOut_() {
+  let rows = [];
+  try { rows = rows_("PCM"); } catch (e) { return []; }
+  return rows.filter(r => truthy_(r.published) && r.title_ar && r.url).map(r => ({
+    id: String(r.id), date: r.date instanceof Date ? Utilities.formatDate(r.date, CONFIG.TIME_ZONE, "yyyy-MM-dd").slice(0, 10) : String(r.date || "").slice(0, 10),
+    titleAr: String(r.title_ar), title: String(r.title_en || ""), titleFr: String(r.title_fr || ""),
+    url: String(r.url), image: /^https:\/\//.test(String(r.image || "")) ? String(r.image) : ""
+  })).sort((a, b) => b.date.localeCompare(a.date)).slice(0, PCM.SHOW);
+}
+
+/* Reads any listing page: finds links whose text is an Arabic headline,
+   the date printed next to each one, and a picture if there is one. */
+function parsePcm_(html, pageUrl) {
+  const AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+  html = String(html).replace(/[٠-٩]/g, d => String(AR_DIGITS.indexOf(d)))
+    .replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<!--[\s\S]*?-->/g, " ");
+  const decode = t => t.replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n));
+  const text = h => decode(h.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+  const months = { "كانون الثاني": 1, "شباط": 2, "آذار": 3, "اذار": 3, "نيسان": 4, "أيار": 5, "ايار": 5, "حزيران": 6, "تموز": 7, "آب": 8, "اب": 8,
+    "أيلول": 9, "ايلول": 9, "تشرين الأول": 10, "تشرين الاول": 10, "تشرين الثاني": 11, "كانون الأول": 12, "كانون الاول": 12,
+    "يناير": 1, "فبراير": 2, "مارس": 3, "أبريل": 4, "ابريل": 4, "مايو": 5, "يونيو": 6, "يوليو": 7, "أغسطس": 8, "اغسطس": 8, "سبتمبر": 9, "أكتوبر": 10, "اكتوبر": 10, "نوفمبر": 11, "ديسمبر": 12 };
+  const pad2 = n => ("0" + n).slice(-2);
+  const ok = (y, m, d) => y > 1990 && y < 2100 && m >= 1 && m <= 12 && d >= 1 && d <= 31 ? y + "-" + pad2(m) + "-" + pad2(d) : "";
+  const monthRe = Object.keys(months).sort((a, b) => b.length - a.length).join("|");
+  function dates(t) {
+    const out = [];
+    let m; const r1 = /(\d{1,2})\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{4})/g, r2 = /(\d{4})\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{1,2})/g,
+      r3 = new RegExp("(\\d{1,2})\\s+(" + monthRe + ")\\s+(\\d{4})", "g");
+    while ((m = r1.exec(t))) { const v = ok(+m[3], +m[2], +m[1]); if (v) out.push({ i: m.index, n: m[0].length, v }); }
+    while ((m = r2.exec(t))) { const v = ok(+m[1], +m[2], +m[3]); if (v) out.push({ i: m.index, n: m[0].length, v }); }
+    while ((m = r3.exec(t))) { const v = ok(+m[3], months[m[2]], +m[1]); if (v) out.push({ i: m.index, n: m[0].length, v }); }
+    return out;
+  }
+  function abs(href) {
+    href = decode(href.trim());
+    if (/^https?:\/\//i.test(href)) return href;
+    if (href.indexOf("//") === 0) return "https:" + href;
+    const origin = pageUrl.match(/^https?:\/\/[^\/]+/)[0];
+    if (href.charAt(0) === "/") return origin + href;
+    if (href.charAt(0) === "?") return pageUrl.split("?")[0] + href;
+    const dir = pageUrl.split("?")[0].replace(/[^\/]*$/, "");
+    let u = dir + href; while (/\/[^\/]+\/\.\.\//.test(u)) u = u.replace(/\/[^\/]+\/\.\.\//, "/");
+    return u.replace(/\/\.\//g, "/");
+  }
+  // 1) every link whose text is an Arabic headline
+  const cands = [];
+  const re = /<a\b([^>]*)>([\s\S]*?)<\/a>/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    const hm = m[1].match(/href\s*=\s*["']([^"']+)["']/i);
+    if (!hm || /^(#|javascript:|mailto:|tel:)/i.test(hm[1].trim())) continue;
+    let title = text(m[2]);
+    if (title.length < 18) { const tm = m[1].match(/title\s*=\s*["']([^"']{18,})["']/i); if (tm) title = decode(tm[1]).trim(); }
+    if (title.length < 18 || !/[؀-ۿ]/.test(title)) continue;
+    const url = abs(hm[1]);
+    if (url.split("#")[0] === pageUrl) continue;
+    cands.push({ start: m.index, end: m.index + m[0].length, title: title.replace(/^\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{4}\s*/, ""), url });
+  }
+  // 2) cut the page into rows (table rows, list items, articles) and read the date inside each row
+  const bounds = [0];
+  const br = /<\/?(tr|li|article|dd|dt)\b[^>]*>|<hr\b[^>]*>/gi;
+  while ((m = br.exec(html))) bounds.push(m.index);
+  bounds.push(html.length);
+  const rowOf = pos => { let lo = 0; for (let i = 0; i < bounds.length - 1; i++) if (bounds[i] <= pos) lo = i; return [bounds[lo], bounds[lo + 1]]; };
+  const firstDate = t => { const d = dates(t).sort((x, y) => x.i - y.i)[0]; return d ? d.v : ""; };
+  const perRow = {};
+  cands.forEach(c => { const [r0, r1] = rowOf(c.start); c.row = r0; c.rowEnd = r1; perRow[r0] = (perRow[r0] || 0) + 1; });
+  // for pages without rows: are dates printed before or after each headline?
+  const gaps = cands.map((c, k) => {
+    const prevEnd = k ? cands[k - 1].end : Math.max(0, c.start - 400), nextStart = k < cands.length - 1 ? cands[k + 1].start : c.end + 300;
+    const before = text(html.slice(Math.max(prevEnd, c.start - 400), c.start)), after = text(html.slice(c.end, Math.min(nextStart, c.end + 300)));
+    const db = dates(before).sort((x, y) => y.i - x.i)[0], da = dates(after).sort((x, y) => x.i - y.i)[0];
+    return { b: db && db.v, bd: db ? before.length - db.i - db.n : 0, a: da && da.v, ad: da ? da.i : 0 };
+  });
+  const avg = xs => xs.length ? xs.reduce((p, q) => p + q, 0) / xs.length : Infinity;
+  const nb = gaps.filter(g => g.b), na = gaps.filter(g => g.a);
+  const after = na.length > nb.length || (na.length === nb.length && avg(na.map(g => g.ad)) < avg(nb.map(g => g.bd)));
+  cands.forEach((c, k) => {
+    const rowLen = c.rowEnd - c.row, ownRow = rowLen < 2500 && perRow[c.row] <= 3;
+    if (ownRow) c.date = firstDate(text(html.slice(c.row, c.rowEnd)));
+    else c.date = (after ? gaps[k].a : gaps[k].b) || firstDate(c.title);
+    const im = ownRow ? html.slice(c.row, c.end).match(/<img[^>]+src\s*=\s*["']([^"']+)["']/i) : null;
+    c.image = im ? abs(im[1]) : "";
+  });
+  // 3) one headline per row (the longest link), no duplicates
+  const best = {};
+  cands.forEach(c => { const key = perRow[c.row] <= 3 && c.rowEnd - c.row < 2500 ? c.row + "|" + c.date : "a" + c.start; if (!best[key] || c.title.length > best[key].title.length) best[key] = c; });
+  const seen = {}, items = [];
+  Object.keys(best).map(k => best[k]).sort((a, b) => a.start - b.start).forEach(c => {
+    if (seen[c.url] || seen[c.title]) return; seen[c.url] = seen[c.title] = true;
+    items.push({ title: c.title, url: c.url, date: c.date || "", image: c.image || "" });
+  });
+  // a real news listing prints a date with each headline; menus and footers do not
+  const dated = items.filter(it => it.date);
+  const list = dated.length >= 3 ? dated : items.filter(it => it.title.length >= 30);
+  return list.sort((a, b) => (b.date || "").localeCompare(a.date || "")).slice(0, 40);
+}
+function hashId_(s) {
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, String(s), Utilities.Charset.UTF_8)
+    .slice(0, 6).map(b => ("0" + (b & 255).toString(16)).slice(-2)).join("");
+}
+
 /* ---------- news helpers ---------- */
 function truthy_(v) { return v === true || /^(true|yes|y|1|نعم)$/i.test(String(v).trim()); }
 function today_() { return Utilities.formatDate(new Date(), CONFIG.TIME_ZONE, "yyyy-MM-dd").slice(0, 10); }
@@ -379,6 +548,7 @@ function newsOut_(r, withState) {
     title: String(r.title || ""), titleAr: String(r.title_ar || ""),
     summary: String(r.summary || ""), summaryAr: String(r.summary_ar || ""),
     body: paras(r.body), bodyAr: paras(r.body_ar),
+    titleFr: String(r.title_fr || ""), summaryFr: String(r.summary_fr || ""), bodyFr: paras(r.body_fr),
     image: /^https:\/\//.test(String(r.image || "")) ? String(r.image) : "",
     source: r.source_url ? { name: String(r.source_name || r.source_url), url: String(r.source_url) } : null
   };

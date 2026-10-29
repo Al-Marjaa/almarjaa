@@ -24,7 +24,7 @@
   let cat = "all", q = "";
   function servicesPage() {
     const shown = SV.filter(s => (cat === "all" || s.category === cat) &&
-      (!q || [s.title, s.ar, s.blurb, s.blurbAr, s.goal, s.goalAr, ...s.subs.flatMap(u => [u.name, u.ar])].join(" ").toLowerCase().includes(q)));
+      (!q || [s.title, s.ar, s.fr, s.blurb, s.blurbAr, s.blurbFr, s.goal, s.goalAr, s.goalFr, ...s.subs.flatMap(u => [u.name, u.ar, u.fr])].join(" ").toLowerCase().includes(q)));
     main.innerHTML = hero(t("svcp.eyebrow"), esc(t("svcp.title")), esc(t("svcp.sub")), `
       <div class="ph-tools reveal" data-delay="220">
         <div class="chips" role="tablist">${CATS.map(c => `<button type="button" class="chip${c === cat ? " active" : ""}" data-cat="${c}" role="tab" aria-selected="${c === cat}">${t("cat." + c)}</button>`).join("")}</div>
@@ -70,9 +70,9 @@
             <p class="alt big-alt ${AM.isAR() ? "" : "ar"} reveal" data-delay="180">${esc(AM.altTitle(s))}</p>
           </div>
         </div>
-        <p class="ph-sub reveal" data-delay="220">${esc(AM.pick(s.overview, s.overviewAr))}</p>
+        <p class="ph-sub reveal" data-delay="220">${esc(AM.pick(s.overview, s.overviewAr, s.overviewFr))}</p>
         <div class="sp-meta reveal" data-delay="260">
-          <span class="pill">${I.building}<span><small>${t("common.handledAt")}</small>${esc(AM.pick(s.authority, s.authorityAr))}</span></span>
+          <span class="pill">${I.building}<span><small>${t("common.handledAt")}</small>${esc(AM.pick(s.authority, s.authorityAr, s.authorityFr))}</span></span>
           <span class="pill">${I.register}<span><small>${t("sp.transactions")}</small>${t("common.tx", { n: s.subs.length })}</span></span>
         </div>
         <div class="hero-cta reveal" data-delay="300">
@@ -94,7 +94,7 @@
         <article class="tx-card reveal" id="tx-${i}">
           <header>
             <span class="tx-num">${pad(i + 1)}</span>
-            <div><h3>${esc(AM.subName(u))}</h3><p class="alt ${AM.isAR() ? "" : "ar"}">${esc(AM.isAR() ? u.name : u.ar)}</p></div>
+            <div><h3>${esc(AM.subName(u))}</h3><p class="alt ${AM.isAR() ? "" : "ar"}">${esc(AM.isMX() ? "" : AM.isAR() ? u.name : u.ar)}</p></div>
             <span class="tx-count">${t("common.docs", { n: u.docs.length })}</span>
           </header>
           <ol class="tx-docs">${u.docs.map((d, k) => `<li><span class="tick">${I.check}</span><span>${esc(AM.doc(d))}</span></li>`).join("")}</ol>
@@ -160,19 +160,19 @@
       <div class="ph-tools reveal" data-delay="220"><div class="chips" id="ncats"></div></div>`) +
       `<section class="section"><div id="newsWrap"><div class="spinner"></div></div></section>`;
     AM.news().then(list => {
-      const cats = ["all", ...["news", "guide", "announcement"].filter(c => list.some(n => n.category === c))];
+      const cats = ["all", ...["official", "news", "guide", "announcement"].filter(c => list.some(n => n.category === c))];
       $("#ncats").innerHTML = cats.map(c => `<button type="button" class="chip${c === ncat ? " active" : ""}" data-ncat="${c}">${t("ncat." + c)}</button>`).join("");
       const shown = list.filter(n => ncat === "all" || n.category === ncat);
       if (!shown.length) { $("#newsWrap").innerHTML = `<p class="muted">${t("news.empty")}</p>`; return; }
       const [f, ...rest] = shown;
       $("#newsWrap").innerHTML = `
-        <a class="news-feature reveal tilt" data-nid="${esc(f.id)}" href="article.html?id=${encodeURIComponent(f.id)}" style="--c:${(AM.svcById(f.service) || {}).color || "#c9a96e"}">
+        <a class="news-feature reveal tilt${f.external ? " is-ext" : ""}" ${f.external ? `href="${esc(f.url)}" target="_blank" rel="noopener"` : `data-nid="${esc(f.id)}" href="article.html?id=${encodeURIComponent(f.id)}"`} style="--c:${(AM.svcById(f.service) || {}).color || "#c9a96e"}">
           <span class="nf-art${f.image ? " has-img" : ""}" aria-hidden="true">${f.image ? `<img src="${esc(f.image)}" alt="" referrerpolicy="no-referrer" />` : `<span>${I[(AM.svcById(f.service) || {}).icon] || I.news}</span>`}</span>
           <span class="nf-body">
-            <span class="nc-top"><span class="nc-cat c-${esc(f.category)}">${t("ncat." + f.category)}</span><time>${AM.fmtDate(f.date)}</time><span>${t("common.minRead", { n: AM.readMins(f) })}</span></span>
-            <b>${esc(AM.pick(f.title, f.titleAr))}</b>
-            <span class="nc-sum">${esc(AM.pick(f.summary, f.summaryAr))}</span>
-            <span class="nc-more">${t("common.readMore")} ${I.arrow}</span>
+            <span class="nc-top"><span class="nc-cat c-${esc(f.category)}">${t("ncat." + f.category)}</span><time>${AM.fmtDate(f.date)}</time>${f.external ? `<span>${t("news.pcmSource")}</span>` : `<span>${t("common.minRead", { n: AM.readMins(f) })}</span>`}</span>
+            <b>${esc(AM.pick(f.title, f.titleAr, f.titleFr))}</b>
+            <span class="nc-sum">${esc(f.external ? t("news.pcmNote") : AM.pick(f.summary, f.summaryAr, f.summaryFr))}</span>
+            <span class="nc-more">${f.external ? t("news.readSource") : t("common.readMore")} ${I.arrow}</span>
           </span>
         </a>
         <div class="news-grid">${rest.map(AM.newsCard).join("")}</div>`;
@@ -190,8 +190,10 @@
       const n = list.find(x => x.id === AM.qs("id"));
       if (!n) { main.innerHTML = hero("404", esc(t("news.notFound")), "", `<a class="btn" href="news.html">${t("art.back")}</a>`); AM.reveal(main); return; }
       const s = AM.svcById(n.service);
-      const body = (AM.isAR() ? (n.bodyAr && n.bodyAr.length ? n.bodyAr : n.body) : (n.body && n.body.length ? n.body : n.bodyAr)) || [];
-      document.title = `${AM.pick(n.title, n.titleAr)} — ${AM.isAR() ? AM.S.brandAr : AM.S.brand}`;
+      const body = AM.bodyOf(n);
+      // merged mode: the full article in each language, one after the other
+      const bodies = AM.isMX() ? [["en", n.body], ["fr", n.bodyFr], ["ar", n.bodyAr]].filter(([, b]) => b && b.length) : [[AM.lang(), body]];
+      document.title = AM.plain(`${AM.pick(n.title, n.titleAr, n.titleFr)} — ${AM.isAR() ? AM.S.brandAr : AM.S.brand}`);
       const more = list.filter(x => x.id !== n.id).slice(0, 3);
       main.innerHTML = `
       <article class="article" data-nid="${esc(n.id)}" style="--c:${s ? s.color : "#c9a96e"}">
@@ -199,20 +201,20 @@
           <div class="ph-inner narrow">
             <nav class="crumbs reveal"><a href="news.html">${t("nav.news")}</a><span>/</span><b>${t("ncat." + n.category)}</b></nav>
             <span class="nc-top reveal" data-delay="60"><span class="nc-cat c-${esc(n.category)}">${t("ncat." + n.category)}</span><time datetime="${esc(n.date)}">${AM.fmtDate(n.date)}</time><span>${t("common.minRead", { n: AM.readMins(n) })}</span></span>
-            <h1 class="art-title reveal" data-delay="120">${esc(AM.pick(n.title, n.titleAr))}</h1>
-            <p class="ph-sub reveal" data-delay="180">${esc(AM.pick(n.summary, n.summaryAr))}</p>
+            <h1 class="art-title reveal" data-delay="120">${esc(AM.pick(n.title, n.titleAr, n.titleFr))}</h1>
+            <p class="ph-sub reveal" data-delay="180">${esc(AM.pick(n.summary, n.summaryAr, n.summaryFr))}</p>
           </div>
         </header>
         ${n.image ? `<figure class="art-cover reveal"><img src="${esc(n.image)}" alt="" referrerpolicy="no-referrer" /></figure>` : ""}
         <div class="art-layout">
-          <div class="art-body reveal">${body.map(p => `<p dir="auto">${esc(p)}</p>`).join("")}
+          <div class="art-body reveal">${bodies.map(([l, b]) => `<div class="art-lang" lang="${l}"${l === "ar" ? ' dir="rtl"' : ""}>${AM.isMX() ? `<p class="art-lang-tag">${{ en: "English", fr: "Français", ar: "العربية" }[l]}</p>` : ""}${b.map(p => `<p dir="auto">${esc(p)}</p>`).join("")}</div>`).join("")}
             ${n.source && n.source.url ? `<p class="art-source">${t("common.source")}: <a href="${esc(n.source.url)}" target="_blank" rel="noopener">${esc(n.source.name || n.source.url)}</a></p>` : ""}
           </div>
           <aside class="art-side">
             ${s ? `<a class="art-svc tilt" href="service.html?id=${s.id}" style="--c:${s.color}"><small>${t("art.service")}</small><span class="sr-ic">${I[s.icon]}</span><b>${esc(AM.title(s))}</b><span class="nc-more">${t("common.details")} ${I.arrow}</span></a>` : ""}
             <div class="share">
               <p class="eyebrow">${t("common.share")}</p>
-              <a class="btn btn-ghost btn-small" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(AM.pick(n.title, n.titleAr) + " " + location.href)}">${I.chat}<span>WhatsApp</span></a>
+              <a class="btn btn-ghost btn-small" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(AM.plain(AM.pick(n.title, n.titleAr, n.titleFr)) + " " + location.href)}">${I.chat}<span>WhatsApp</span></a>
               <button type="button" class="btn btn-ghost btn-small" id="copyLink">${I.link}<span>${t("common.copy")}</span></button>
             </div>
           </aside>
@@ -242,7 +244,7 @@
       <div class="section-head reveal"><p class="eyebrow">${t("ab.where.t")}</p><h2>${t("ab.where.t")}</h2><p class="muted">${t("ab.where.sub")}</p></div>
       <div class="where">${SV.map((s, i) => `
         <a class="where-item reveal" data-delay="${(i % 4) * 60}" href="service.html?id=${s.id}" style="--c:${s.color}">
-          <span class="sr-ic">${I[s.icon]}</span><span><b>${esc(AM.pick(s.authority, s.authorityAr))}</b><small>${esc(AM.title(s))}</small></span>
+          <span class="sr-ic">${I[s.icon]}</span><span><b>${esc(AM.pick(s.authority, s.authorityAr, s.authorityFr))}</b><small>${esc(AM.title(s))}</small></span>
         </a>`).join("")}</div>
     </section>
     <section class="section">
@@ -257,7 +259,7 @@
   const rerender = () => {
     render();
     // re-apply WhatsApp links etc. inside freshly rendered markup
-    $$("[data-wa]", main).forEach(a => { a.href = `https://wa.me/${AM.S.whatsapp}?text=${encodeURIComponent(t("wa.msg", { brand: AM.S.brand }))}`; a.target = "_blank"; a.rel = "noopener"; });
+    AM.waLinks(main);
     AM.reveal(main);
   };
   if (render) {

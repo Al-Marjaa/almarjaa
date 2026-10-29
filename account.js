@@ -60,11 +60,11 @@
   /* ---------- helpers ---------- */
   const firstName = () => ((user && (user.name || user.email)) || "").split(/[\s@]/)[0];
   const fileNo = id => String(id).startsWith("AM-") ? id : "AM-" + String(id).slice(0, 6).toUpperCase();
-  const fmtDate = d => d ? new Intl.DateTimeFormat(AM.isAR() ? "ar-LB" : "en-GB", { day: "numeric", month: "short", year: "numeric" }).format(new Date(d)) : "";
+  const fmtDate = d => d ? new Intl.DateTimeFormat(AM.isAR() ? "ar-LB" : AM.isFR() ? "fr-FR" : "en-GB", { day: "numeric", month: "short", year: "numeric" }).format(new Date(d)) : "";
   const fmtSize = b => b > 1048576 ? (b / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1024)) + " KB";
   const svcOf = r => SV.find(s => s.id === r.service_id);
-  const svcName = r => AM.isAR() ? (r.service_ar || r.service) : r.service;
-  const txName = r => AM.isAR() ? (r.transaction_ar || r.transaction) : r.transaction;
+  const svcName = r => { const s = svcOf(r); return s ? AM.title(s) : AM.pick(r.service, r.service_ar); };
+  const txName = r => { const s = svcOf(r), u = s && r.sub_index !== "" && r.sub_index != null ? s.subs[+r.sub_index] : null; return u ? AM.subName(u) : AM.pick(r.transaction, r.transaction_ar); };
   const statusLabel = s => t("status." + s);
   const ERR = { invalid: "auth.err.invalid", exists: "auth.err.exists", short: "auth.err.short", many: "auth.err.many",
     code: "auth.err.code", email: "auth.err.email", network: "auth.err.network" };
@@ -289,12 +289,12 @@
 
     const fileRows = files.length ? `<ul class="files">${files.map(f => `
       <li><span class="f-ic">${f.doc_index != null ? AM.pad(f.doc_index + 1) : "+"}</span>
-        <span class="f-txt"><b>${esc(AM.isAR() ? (f.label_ar || f.label || "") : (f.label || ""))}</b><small>${esc(f.file_name || "")} · ${fmtSize(f.size || 0)} · ${fmtDate(f.created_at)}</small></span>
+        <span class="f-txt"><b>${esc(AM.pick(f.label, f.label_ar))}</b><small>${esc(f.file_name || "")} · ${fmtSize(f.size || 0)} · ${fmtDate(f.created_at)}</small></span>
         <button type="button" class="linkbtn" data-file="${esc(f.id)}">${t("dash.open")}</button></li>`).join("")}</ul>`
       : `<p class="muted small">${t("dash.noFiles")}</p>`;
 
     const addOpts = (sub ? sub.docs.map((d, i) => `<option value="${i}">${AM.pad(i + 1)} — ${esc(AM.doc(d))}</option>`).join("") : "") +
-      `<option value="extra">${AM.isAR() ? "ملف إضافي" : "Extra file"}</option>`;
+      `<option value="extra">${t("extra.file")}</option>`;
 
     const adminBox = adminView ? `
       <div class="admin-box">

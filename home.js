@@ -11,8 +11,22 @@
   const stats = $$("[data-count]");
   stats[0].dataset.count = SV.length;
   stats[1].dataset.count = SV.reduce((n, s) => n + s.subs.length, 0);
-  const mq = SV.map(s => `<a href="service.html?id=${s.id}">${esc(s.title)} <span class="ar">${esc(s.ar)}</span><i></i></a>`).join("");
-  $("#marquee").innerHTML = mq + mq;
+  const marquee = () => {
+    const mq = SV.map(s => `<a href="service.html?id=${s.id}">${esc(AM.isAR() ? s.title : AM.isFR() ? s.fr : s.title)}${AM.isMX() ? ` <em>${esc(s.fr)}</em>` : ""} <span class="ar">${esc(s.ar)}</span><i></i></a>`).join("");
+    $("#marquee").innerHTML = mq + mq;
+  };
+  marquee(); AM.onLang.push(marquee);
+  /* merged mode: big English headline, then the French and Arabic sentences beneath it */
+  const heroTri = () => {
+    const h1 = $(".hero-title"); if (!h1) return;
+    let box = $(".hero-tri");
+    if (!AM.isMX()) { box && box.remove(); return; }
+    $$(".hero-title .line").forEach(l => l.textContent = AM.part(t(l.dataset.i18n), 0));
+    const line = i => ["hero.l1", "hero.l2", "hero.l3"].map(k => AM.part(t(k), i)).join(" ");
+    if (!box) { box = document.createElement("div"); box.className = "hero-tri"; h1.after(box); }
+    box.innerHTML = `<p class="ht-fr" lang="fr">${esc(line(1))}</p><p class="ht-ar" lang="ar" dir="rtl">${esc(line(2))}</p>`;
+  };
+  AM.onLang.push(heroTri);
   function countUp() {
     stats.forEach(el => {
       const end = +el.dataset.count, t0 = performance.now();
@@ -45,7 +59,7 @@
     let shown = 0;
     $$(".card", grid).forEach(c => {
       const s = AM.svcById(c.dataset.id);
-      const hay = [s.title, s.ar, s.blurb, s.blurbAr, s.goal, s.goalAr, ...s.subs.flatMap(u => [u.name, u.ar, ...u.docs.flat()])].join(" ").toLowerCase();
+      const hay = [s.title, s.ar, s.fr, s.blurb, s.blurbAr, s.blurbFr, s.goal, s.goalAr, s.goalFr, ...s.subs.flatMap(u => [u.name, u.ar, u.fr, ...u.docs.flat()])].join(" ").toLowerCase();
       const ok = !q || hay.includes(q);
       c.classList.toggle("hidden", !ok); ok && shown++;
     });
@@ -64,7 +78,7 @@
         <div class="wz-grid">${SV.map((s, i) => `
           <button type="button" class="wz-opt tilt" style="--c:${s.color}; --i:${i}" data-s="${s.id}">
             <span class="wz-ic">${AM.ICONS[s.icon]}</span>
-            <span class="wz-txt"><b>${esc(AM.pick(s.goal, s.goalAr))}</b><small>${esc(AM.title(s))}</small></span>
+            <span class="wz-txt"><b>${esc(AM.pick(s.goal, s.goalAr, s.goalFr))}</b><small>${esc(AM.title(s))}</small></span>
           </button>`).join("")}</div>`;
     } else if (step === 2) {
       const s = AM.svcById(wzSvc);
@@ -80,7 +94,7 @@
         <div class="wz-result" style="--c:${s.color}">
           <div class="wz-res-head">
             <span class="wz-ic big">${AM.ICONS[s.icon]}</span>
-            <div><p class="eyebrow">${t("wz.result")}</p><h3>${esc(AM.subName(u))}</h3><p class="muted">${esc(AM.title(s))} · ${t("common.handledAt")}: ${esc(AM.pick(s.authority, s.authorityAr))}</p></div>
+            <div><p class="eyebrow">${t("wz.result")}</p><h3>${esc(AM.subName(u))}</h3><p class="muted">${esc(AM.per(i => `${AM.part(AM.title(s), i)} · ${AM.part(t("common.handledAt"), i)}: ${AM.part(AM.pick(s.authority, s.authorityAr, s.authorityFr), i)}`))}</p></div>
           </div>
           <ol class="wz-docs">${u.docs.map((d, i) => `<li style="--i:${i}"><span>${pad(i + 1)}</span>${esc(AM.doc(d))}</li>`).join("")}</ol>
           <div class="wz-actions">

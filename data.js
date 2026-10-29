@@ -638,3 +638,171 @@ window.SERVICES = [
     ]
   }
 ];
+
+/* =====================================================================
+   FRANÇAIS — titles, descriptions, transactions and document lists.
+   Merged into SERVICES below (s.fr, s.blurbFr, s.goalFr, s.authorityFr,
+   s.overviewFr, sub.fr, and each document becomes [en, ar, fr]).
+   ===================================================================== */
+window.SERVICES_FR = {
+  commercial: {
+    title: "Registre du commerce",
+    blurb: "Immatriculation d'un commerçant, d'un établissement ou d'une société (SARL, SAL, Holding, Offshore) et modifications.",
+    goal: "Créer ou immatriculer une entreprise",
+    authority: "Registre du commerce — Ministère de la Justice (greffes régionaux)",
+    overview: "Tout commerçant et toute société exerçant au Liban doivent être immatriculés au Registre du commerce, tenu par les greffes des tribunaux sous l'autorité du Ministère de la Justice. Nous préparons votre dossier, organisons les signatures et la légalisation notariale si nécessaire, le déposons et le suivons jusqu'à la délivrance de votre certificat d'immatriculation.",
+    subs: [
+      ["Immatriculation d'un commerçant", ["Carte d'identité libanaise ou extrait d'état civil individuel (moins de 3 mois)", "Casier judiciaire récent", "Bail enregistré à la municipalité, ou titre de propriété des locaux", "Demande d'immatriculation signée (formulaire du Registre du commerce)", "Spécimen de signature", "Certificat de numéro financier (fiscal), s'il est déjà délivré", "2 photos d'identité"]],
+      ["Immatriculation d'un établissement", ["Carte d'identité ou extrait d'état civil individuel du propriétaire (< 3 mois)", "Casier judiciaire du propriétaire", "Justificatif de domiciliation : bail enregistré, titre de propriété ou permis d'occuper", "Nom commercial proposé + description de l'activité", "Demande d'immatriculation signée", "Certificat de numéro financier (fiscal), s'il existe", "Toute licence sectorielle exigée par l'activité (ex. Santé, Tourisme)"]],
+      ["Immatriculation d'une société (SARL / SAL / Holding / Offshore)", ["Statuts signés et notariés", "Attestation bancaire de dépôt du capital social", "Pièces d'identité ou passeports de tous les associés / actionnaires", "Pièces d'identité et casiers judiciaires des gérants / administrateurs", "Justificatifs de domiciliation : titre de propriété, bail ou permis d'occuper", "Demande d'immatriculation (formulaire du Registre du commerce)", "Circulaire commerciale indiquant les signataires autorisés", "SAL / Holding / Offshore : acte de souscription + procès-verbal du premier conseil d'administration", "Actionnaires étrangers : documents légalisés et traduits en arabe"]],
+      ["Modifications et certificats", ["Numéro au Registre du commerce du commerçant / de la société", "Décision du conseil ou des associés décrivant la modification", "Pièce d'identité du signataire autorisé", "Justificatifs (nouveau bail, acte de cession de parts, etc.)"]]
+    ]
+  },
+  nssf: {
+    title: "Sécurité sociale (CNSS)",
+    blurb: "Affiliation des employeurs et des salariés, déclarations, quitus et dossiers d'indemnité de fin de service.",
+    goal: "Déclarer des salariés à la sécurité sociale",
+    authority: "Caisse nationale de sécurité sociale (CNSS)",
+    overview: "Au Liban, les employeurs s'affilient à la Caisse nationale de sécurité sociale et y déclarent leurs salariés. Nous nous occupons de l'affiliation de l'employeur, des nouveaux salariés, des quitus et des dossiers de fin de service, pour que votre entreprise reste en règle.",
+    subs: [
+      ["Affiliation de l'employeur", ["Certificat du Registre du commerce", "Certificat de numéro financier (fiscal)", "Pièce d'identité du propriétaire / signataire autorisé", "Bail ou titre de propriété du lieu de travail", "Liste des salariés avec dates d'embauche et salaires", "Formulaire d'affiliation employeur de la CNSS signé"]],
+      ["Affiliation d'un salarié", ["Extrait d'état civil individuel du salarié (< 3 mois)", "Copie de la carte d'identité du salarié", "Extrait d'état civil familial — pour ajouter conjoint / enfants", "Déclaration d'embauche signée par l'employeur", "2 photos d'identité", "Salariés étrangers : permis de travail et titre de séjour valides"]],
+      ["Quitus (certificat de libération)", ["Numéro CNSS de l'employeur", "Dernières déclarations de salaires", "Preuve du paiement des cotisations", "Pièce d'identité du signataire autorisé"]],
+      ["Indemnité de fin de service", ["Carte / numéro CNSS", "Carte d'identité ou extrait d'état civil individuel", "Lettre de démission ou de licenciement", "Déclaration de départ de l'employeur", "Coordonnées bancaires (IBAN)"]]
+    ]
+  },
+  realestate: {
+    title: "Enregistrement immobilier",
+    blurb: "Ventes, transferts, successions, hypothèques et certificats du registre foncier.",
+    goal: "Acheter, vendre ou hériter d'un bien",
+    authority: "Direction générale des Affaires foncières et du Cadastre — Ministère des Finances",
+    overview: "Une opération immobilière ne produit tous ses effets qu'une fois enregistrée au bureau foncier compétent. Nous préparons et suivons les ventes et transferts, les transferts successoraux, les certificats fonciers et les dossiers d'hypothèque.",
+    subs: [
+      ["Vente / transfert de propriété", ["Titre de propriété ou certificat foncier récent", "Pièces d'identité ou extraits d'état civil individuels du vendeur et de l'acheteur", "Contrat de vente notarié", "Plan cadastral / relevé de la parcelle", "Quitus de la municipalité", "Quitus de l'impôt sur la propriété bâtie (Ministère des Finances)", "Procuration, si une partie est représentée", "Acheteurs étrangers : justificatif d'éligibilité / autorisations requises"]],
+      ["Transfert successoral", ["Acte de décès", "Jugement d'hérédité du tribunal compétent", "Quitus de l'impôt sur les successions (Ministère des Finances)", "Pièces d'identité / extraits d'état civil de tous les héritiers", "Certificats fonciers des biens"]],
+      ["Certificat foncier / recherche", ["Numéro du bien et zone cadastrale", "Pièce d'identité du demandeur", "Procuration si la demande est faite pour un tiers"]],
+      ["Inscription / mainlevée d'hypothèque", ["Certificat foncier", "Contrat d'hypothèque ou lettre de mainlevée de la banque", "Pièces d'identité du propriétaire et du représentant du créancier"]]
+    ]
+  },
+  vehicles: {
+    title: "Immatriculation des véhicules",
+    blurb: "Transferts de propriété, première immatriculation, taxe mécanique et plaques auprès de la Nafaa.",
+    goal: "Transférer, immatriculer ou renouveler une voiture",
+    authority: "Autorité de gestion du trafic, des véhicules et de la mécanique (Nafaa)",
+    overview: "Les transferts de propriété, les premières immatriculations, la taxe mécanique annuelle et les plaques relèvent de l'Autorité de gestion du trafic, appelée la Nafaa. Nous préparons les papiers, réservons les étapes et assurons le suivi pour vous.",
+    subs: [
+      ["Transfert de propriété (véhicule d'occasion)", ["Carte grise (carnet d'immatriculation)", "Copie certifiée de la pièce d'identité ou extrait d'état civil — vendeur", "Copie certifiée de la pièce d'identité ou extrait d'état civil — acheteur", "Assurance obligatoire (dommages corporels) au nom de l'acheteur", "Rapport de contrôle technique", "Procuration si une partie ne peut pas être présente", "Véhicule de société : certificat du Registre du commerce + autorisation du signataire"]],
+      ["Véhicule neuf — première immatriculation", ["Facture du concessionnaire, ou déclaration en douane pour les véhicules importés", "Certificat d'origine / documents du constructeur", "Pièce d'identité ou extrait d'état civil individuel du propriétaire", "Contrat d'assurance obligatoire", "Certificat de contrôle technique"]],
+      ["Taxe mécanique (annuelle)", ["Carte grise (recto et verso)", "Original du contrat d'assurance obligatoire", "Reçu de l'assurance obligatoire", "Certificat de contrôle technique (lorsqu'il est dû)"]],
+      ["Remplacement de plaques / carte grise perdue", ["Carte grise (ou procès-verbal de police en cas de perte)", "Pièce d'identité valide, passeport ou extrait d'état civil individuel (< 3 mois)"]]
+    ]
+  },
+  mofa: {
+    title: "Ministère des Affaires étrangères",
+    blurb: "Légalisation de documents libanais pour l'étranger, et de documents étrangers pour le Liban.",
+    goal: "Utiliser un document à l'étranger",
+    authority: "Ministère des Affaires étrangères et des Émigrés",
+    overview: "Les documents libanais destinés à l'étranger suivent généralement une chaîne : l'autorité qui les a délivrés, puis le Ministère des Affaires étrangères, puis l'ambassade du pays de destination. Les documents étrangers suivent le chemin inverse pour être utilisés au Liban. Nous gérons chaque étape ainsi que les traductions assermentées.",
+    subs: [
+      ["Légaliser un document libanais pour l'étranger", ["Document original, d'abord tamponné par l'autorité libanaise qui l'a délivré", "Traduction assermentée, si le pays de destination l'exige", "Copie de votre pièce d'identité ou passeport", "Procuration si nous déposons en votre nom"]],
+      ["Légaliser une traduction assermentée", ["Document original", "Traduction par un traducteur assermenté", "Signature du traducteur certifiée par un notaire, puis par le Ministère de la Justice"]],
+      ["Document étranger pour usage au Liban", ["Document original légalisé dans son pays d'émission", "Légalisation par l'ambassade / le consulat du Liban sur place", "Traduction en arabe par un traducteur assermenté, si nécessaire"]]
+    ]
+  },
+  insurance: {
+    title: "Assurances",
+    blurb: "Assurance auto obligatoire et tous risques, santé, voyage, vie, biens et accidents du travail.",
+    goal: "Assurer ma voiture, ma santé ou mon entreprise",
+    authority: "Compagnies d'assurance agréées",
+    overview: "L'assurance obligatoire couvrant les dommages corporels causés aux tiers est exigée pour toute voiture circulant au Liban. Au-delà, nous vous aidons à souscrire une assurance auto tous risques, santé, voyage ou professionnelle auprès d'assureurs agréés.",
+    subs: [
+      ["Auto — obligatoire / tiers / tous risques", ["Carte grise", "Permis de conduire", "Pièce d'identité du propriétaire", "Photos du véhicule (tous risques uniquement)"]],
+      ["Santé / médicale", ["Pièce d'identité ou passeport de chaque assuré", "Questionnaire médical signé", "Numéro CNSS, si assuré (contrats complémentaires)"]],
+      ["Voyage", ["Copie du passeport", "Dates et destination du voyage", "Exigence du visa, le cas échéant"]],
+      ["Entreprise — incendie, biens, accidents du travail", ["Certificat du Registre du commerce", "Liste des biens assurés et leurs valeurs", "Nombre de salariés et masse salariale", "Photos / adresse des locaux"]]
+    ]
+  },
+  tax: {
+    title: "Ministère des Finances et TVA",
+    blurb: "Numéro financier, immatriculation à la TVA, déclarations fiscales et quitus fiscaux.",
+    goal: "Obtenir un numéro fiscal ou s'immatriculer à la TVA",
+    authority: "Ministère des Finances",
+    overview: "La plupart des entreprises ont besoin d'un numéro financier (fiscal), et certaines doivent s'immatriculer à la TVA. Nous préparons les immatriculations, les déclarations périodiques et les quitus fiscaux souvent demandés par les autres administrations.",
+    subs: [
+      ["Numéro financier (fiscal)", ["Pièce d'identité ou extrait d'état civil individuel", "Certificat du Registre du commerce (si immatriculé)", "Bail de l'adresse de l'activité", "Formulaire d'immatriculation signé"]],
+      ["Immatriculation à la TVA", ["Certificat de numéro financier", "Certificat du Registre du commerce", "Chiffre d'affaires / registres des ventes", "Pièce d'identité du signataire autorisé"]],
+      ["Déclarations et quitus fiscal", ["Numéro financier", "États financiers / relevés de revenus de la période", "Registres de paie (impôt sur les salaires)"]]
+    ]
+  },
+  work: {
+    title: "Permis de travail et séjour",
+    blurb: "Permis de travail du Ministère du Travail et titres de séjour de la Sûreté générale, salariés et employés de maison.",
+    goal: "Embaucher un salarié étranger",
+    authority: "Ministère du Travail et Sûreté générale",
+    overview: "Embaucher un salarié étranger suppose un permis de travail du Ministère du Travail et un titre de séjour de la Sûreté générale. Nous préparons les deux dossiers, y compris pour les employés de maison, et suivons les renouvellements.",
+    subs: [
+      ["Permis de travail (salarié d'entreprise)", ["Certificat du Registre du commerce de la société", "Contrat de travail signé", "Copie du passeport en cours de validité", "CV et diplômes certifiés", "Certificat de bonne conduite (casier)", "Certificat médical", "Photos d'identité"]],
+      ["Titre de séjour", ["Permis de travail approuvé", "Passeport en cours de validité", "Contrat de travail", "Certificat médical", "Justificatif de logement"]],
+      ["Dossier d'employé(e) de maison", ["Pièce d'identité de l'employeur", "Copie du passeport de l'employé(e)", "Police d'assurance de l'employé(e)", "Contrat type signé"]]
+    ]
+  },
+  civil: {
+    title: "État civil",
+    blurb: "Extraits d'état civil, enregistrement des naissances et mariages, cartes d'identité et passeports.",
+    goal: "Actes familiaux et extraits d'état civil",
+    authority: "Direction générale du Statut personnel — Ministère de l'Intérieur",
+    overview: "Les extraits d'état civil sont demandés dans presque toutes les démarches. Nous obtenons les extraits individuels et familiaux et enregistrons les mariages et les naissances, y compris ceux survenus à l'étranger.",
+    subs: [
+      ["Extrait d'état civil individuel / familial", ["Nom complet, nom du père, numéro et lieu du registre", "Copie de la pièce d'identité (si disponible)"]],
+      ["Enregistrement d'un mariage", ["Contrat de mariage de l'autorité religieuse ou civile", "Extraits d'état civil individuels des deux époux", "Mariage à l'étranger : contrat légalisé par l'ambassade et le Ministère des Affaires étrangères"]],
+      ["Enregistrement d'une naissance", ["Certificat de naissance de l'hôpital / du médecin", "Extrait d'état civil familial des parents", "Certificat du moukhtar"]]
+    ]
+  },
+  trademark: {
+    title: "Dépôt de marque",
+    blurb: "Protégez votre nom et votre logo auprès de l'Office de la propriété intellectuelle du Ministère de l'Économie.",
+    goal: "Protéger ma marque",
+    authority: "Office de protection de la propriété intellectuelle — Ministère de l'Économie et du Commerce",
+    overview: "Enregistrer votre nom et votre logo les protège au Liban. Nous préparons les nouveaux dépôts de marque, les renouvellements et les transferts de propriété.",
+    subs: [
+      ["Nouvelle marque", ["Logo / marque en haute résolution", "Pièce d'identité du titulaire ou certificat du Registre du commerce de la société", "Liste des produits / services (classes)", "Procuration notariée"]],
+      ["Renouvellement / cession", ["Certificat d'enregistrement existant", "Pièce d'identité du titulaire ou documents de la société", "Acte de cession (pour les transferts)"]]
+    ]
+  },
+  municipal: {
+    title: "Permis municipaux",
+    blurb: "Enregistrement des baux, permis d'enseigne, permis d'occuper et de construire.",
+    goal: "Bail ou permis de construire",
+    authority: "Votre municipalité",
+    overview: "Beaucoup de démarches commencent à la municipalité : enregistrer un bail, ou obtenir un permis de construire et un permis d'occuper. Nous préparons et suivons ces dossiers auprès de la municipalité concernée.",
+    subs: [
+      ["Enregistrement d'un bail", ["Contrat de bail signé", "Pièces d'identité du bailleur et du locataire", "Certificat foncier ou titre de propriété"]],
+      ["Permis de construire / d'occuper", ["Titre de propriété / certificat foncier", "Plans d'architecte signés par un ingénieur", "Plan cadastral", "Visa de l'Ordre des ingénieurs"]]
+    ]
+  },
+  notary: {
+    title: "Notaire et traduction",
+    blurb: "Procurations, traductions assermentées et copies certifiées.",
+    goal: "Procuration ou traduction",
+    authority: "Notaires et traducteurs assermentés",
+    overview: "Procurations, traductions assermentées et copies certifiées sont la base de nombreux autres dossiers. Nous les organisons pour que votre démarche principale ne soit pas retardée.",
+    subs: [
+      ["Procuration", ["Pièces d'identité du mandant et du mandataire", "Étendue de la procuration (ce qu'elle doit couvrir)", "Documents liés (carte grise, titre de propriété, etc.)"]],
+      ["Traduction assermentée", ["Scan lisible du document original", "Langue cible"]]
+    ]
+  }
+};
+(function mergeFrench() {
+  const F = window.SERVICES_FR || {};
+  (window.SERVICES || []).forEach(s => {
+    const f = F[s.id]; if (!f) return;
+    s.fr = f.title; s.blurbFr = f.blurb; s.goalFr = f.goal; s.authorityFr = f.authority; s.overviewFr = f.overview;
+    s.subs.forEach((u, i) => {
+      const fu = f.subs[i]; if (!fu) return;
+      u.fr = fu[0];
+      u.docs = u.docs.map((d, j) => { const a = Array.isArray(d) ? d.slice(0, 2) : [d, d]; a[2] = fu[1][j] || a[0]; return a; });
+    });
+  });
+  const S = window.SITE;
+  if (S) { S.addressFr = S.addressFr || "Baabda, Mont-Liban"; S.hoursFr = S.hoursFr || "Lun–ven 8h30–17h00 · sam 9h00–13h00"; }
+})();
