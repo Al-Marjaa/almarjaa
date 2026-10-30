@@ -39,6 +39,7 @@
             <b>${esc(AM.title(s))}</b>
             <span class="alt ${AM.isAR() ? "" : "ar"}">${esc(AM.altTitle(s))}</span>
             <span class="sr-blurb">${esc(AM.blurb(s))}</span>
+            <span class="sr-start" role="button" tabindex="0" data-open-file data-svc="${s.id}">${t("common.startFile")} <i>+</i></span>
           </span>
           <span class="sr-tx">${s.subs.map(u => `<span>${esc(AM.subName(u))}</span>`).join("")}</span>
           <span class="sr-go">${I.arrow}</span>
@@ -250,7 +251,7 @@
     <section class="section">
       <div class="help-band big reveal tilt">
         <div><h3>${t("ab.cta.t")}</h3><p class="muted">${t("ab.cta.p")}</p></div>
-        <div class="hero-cta"><a class="btn" href="index.html#apply">${t("nav.cta")}</a><a class="btn btn-ghost" href="#" data-wa>WhatsApp</a></div>
+        <div class="hero-cta"><button type="button" class="btn" data-open-file>${t("nav.cta")}</button><a class="btn btn-ghost" href="#" data-wa>WhatsApp</a></div>
       </div>
     </section>`;
   }

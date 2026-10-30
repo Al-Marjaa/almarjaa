@@ -6,6 +6,7 @@ A 3D website in five language modes — **English + العربية** (the defaul
 |---|---|
 | Client files | Google Drive → `Al Marjaa — Client Files / <Client Name> / <Service> / files` |
 | Inquiries + statuses | Google Sheet **"Al Marjaa — Tracking"** (tabs: Inquiries, Files, Users, News, PCM) |
+| Payments | **Payments** tab: every amount Olivia records against a file (office only) |
 | Official news | Read every hour from the Presidency of the Council of Ministers into the **PCM** tab |
 | Accounts (log in / sign up) | The same Sheet (passwords stored scrambled, never readable) |
 | Emails | Your Gmail: new-file alerts to you, status updates and reset codes to clients |
@@ -14,13 +15,14 @@ A 3D website in five language modes — **English + العربية** (the defaul
 | File | Upload to GitHub? |
 |---|---|
 | **Pages:** `index.html`, `services.html`, `service.html`, `news.html`, `article.html`, `about.html` | **Yes** |
-| **Style and scripts:** `style.css`, `core.js`, `scene.js`, `home.js`, `pages.js`, `account.js`, `i18n.js`, `data.js`, `news.js`, `newsroom.js` | **Yes** |
+| **Style and scripts:** `style.css`, `core.js`, `scene.js`, `home.js`, `pages.js`, `apply.js`, `account.js`, `i18n.js`, `data.js`, `news.js`, `newsroom.js` | **Yes** |
+| **Icons:** `favicon.svg`, `favicon-32.png`, `favicon-16.png`, `apple-touch-icon.png`, `icon-512.png` | **Yes** |
 | `google-apps-script/Code.gs` | No — pasted into Google (step 2) |
 
-> Seeing the old name or a broken layout? GitHub still has old files. Delete everything in the repo, upload all 16 files (and delete the old `app.js`), wait 1–2 minutes, then hard-refresh (Ctrl+Shift+R / Cmd+Shift+R).
+> Seeing the old name or a broken layout? GitHub still has old files. Delete everything in the repo, upload all 22 files (and delete the old `app.js`), wait 1–2 minutes, then hard-refresh (Ctrl+Shift+R / Cmd+Shift+R).
 
 ## 1. Publish on GitHub Pages
-1. Create a public repository on github.com and upload all 16 files.
+1. Create a public repository on github.com and upload all 22 files.
 2. Settings → Pages → Source: **Deploy from a branch** → `main` / `(root)` → Save.
 3. The site appears at `https://<username>.github.io/<repo>/`.
 
@@ -94,6 +96,16 @@ Tip: `yoursite/news.html#newsroom` opens the Newsroom directly (it asks you to l
 - **Hide a headline:** untick `published` in the PCM tab. To edit a translation, type over `title_en` / `title_fr`.
 - Only headlines and links are copied, never the full articles. The hourly reader is installed by **setup**; to stop it, open **Triggers** (clock icon) in script.google.com and delete `refreshPcm`.
 - Note: the pcm.gov.lb site asks automated tools not to crawl it. Reading one page once an hour for headlines is light, but it is your decision; to switch it off, delete the trigger above.
+
+## 7. Payments and income (office only)
+Log in as the office and open **My files → All clients**. Each file has a **Payments** box:
+- **Agreed fee** — the price you agreed with the client (USD or LBP) → *Save fee*.
+- **Add payment** — amount, currency, method (cash, bank transfer, OMT, Whish, card, cheque, other), date and an optional note. Each one is saved in the **Payments** tab of the sheet.
+- The box shows **paid**, **balance** and a progress bar; the file's header shows *Paid in full* or *$… due*. To remove a payment typed by mistake, press × twice.
+
+The **Income** tab shows this month, last month, this year and what is still to collect; a 12-month chart; income by service; the latest payments; and every file with a balance, with a one-tap **WhatsApp reminder**. **Download CSV** gives all payments for Excel or your accountant. Clients never see fees or payments.
+
+If you already ran setup before, paste the new `Code.gs`, run **setup** once more (it adds the Payments tab and the fee columns) and deploy a new version.
 
 ## Limits to know
 - Each upload can be up to **25 MB** in total (`maxUploadMB` in `data.js`). Bigger files can go by WhatsApp.

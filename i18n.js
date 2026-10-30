@@ -692,3 +692,56 @@ Object.assign(window.I18N.ar, {
   "news.readSource": "اقرأ على موقع رئاسة مجلس الوزراء", "news.autoTr": "ترجمة آلية للعنوان العربي",
   "extra.file": "ملف إضافي"
 });
+
+/* start-a-file panel */
+Object.assign(window.I18N.en, { "fs.s1": "Your transaction", "fs.s2": "Your details", "fs.s3": "Your documents" });
+Object.assign(window.I18N.fr, { "fs.s1": "Votre démarche", "fs.s2": "Vos coordonnées", "fs.s3": "Vos documents" });
+Object.assign(window.I18N.ar, { "fs.s1": "معاملتك", "fs.s2": "معلوماتك", "fs.s3": "مستنداتك" });
+
+/* ---------------- payments + income (office only) ---------------- */
+Object.assign(window.I18N.en, {
+  "pay.title": "Payments", "pay.fee": "Agreed fee", "pay.feeSave": "Save fee", "pay.feeSaved": "Fee saved.",
+  "pay.paid": "Paid", "pay.balance": "Balance", "pay.noFee": "No fee set yet", "pay.full": "Paid in full", "pay.due": "{a} due",
+  "pay.none": "No payments recorded yet.", "pay.add": "Add payment", "pay.amount": "Amount", "pay.currency": "Currency",
+  "pay.method": "Method", "pay.date": "Date", "pay.note": "Note (optional)", "pay.added": "Payment recorded.",
+  "pay.deleted": "Payment deleted.", "pay.del": "Delete payment", "pay.sure": "Delete? Click again", "pay.badAmount": "Enter an amount greater than 0.",
+  "pay.m.cash": "Cash", "pay.m.transfer": "Bank transfer", "pay.m.omt": "OMT", "pay.m.whish": "Whish", "pay.m.card": "Card", "pay.m.cheque": "Cheque", "pay.m.other": "Other",
+  "inc.tab": "Income", "inc.sub": "Office view — money received and still to collect",
+  "inc.month": "This month", "inc.last": "Last month", "inc.year": "This year", "inc.out": "Still to collect",
+  "inc.count": "{n} payments", "inc.files": "{n} files", "inc.chart": "Received per month", "inc.bySvc": "By service",
+  "inc.recent": "Latest payments", "inc.unpaid": "Balances to collect", "inc.none": "No payments yet. Open a file in All clients and add its first payment.",
+  "inc.allPaid": "Every file with a fee is fully paid.", "inc.export": "Download CSV", "inc.open": "Open file", "inc.remind": "Remind on WhatsApp",
+  "inc.remindMsg": "Hello {name}, a kind reminder from Al Marjaa about file {file}: the remaining balance is {amount}. Thank you!"
+});
+Object.assign(window.I18N.fr, {
+  "pay.title": "Paiements", "pay.fee": "Honoraires convenus", "pay.feeSave": "Enregistrer", "pay.feeSaved": "Honoraires enregistrés.",
+  "pay.paid": "Payé", "pay.balance": "Reste à payer", "pay.noFee": "Honoraires non fixés", "pay.full": "Payé en totalité", "pay.due": "{a} à payer",
+  "pay.none": "Aucun paiement enregistré.", "pay.add": "Ajouter un paiement", "pay.amount": "Montant", "pay.currency": "Devise",
+  "pay.method": "Moyen", "pay.date": "Date", "pay.note": "Note (facultatif)", "pay.added": "Paiement enregistré.",
+  "pay.deleted": "Paiement supprimé.", "pay.del": "Supprimer le paiement", "pay.sure": "Supprimer ? Cliquez encore", "pay.badAmount": "Saisissez un montant supérieur à 0.",
+  "pay.m.cash": "Espèces", "pay.m.transfer": "Virement", "pay.m.omt": "OMT", "pay.m.whish": "Whish", "pay.m.card": "Carte", "pay.m.cheque": "Chèque", "pay.m.other": "Autre",
+  "inc.tab": "Revenus", "inc.sub": "Vue du bureau — encaissé et reste à encaisser",
+  "inc.month": "Ce mois-ci", "inc.last": "Le mois dernier", "inc.year": "Cette année", "inc.out": "Reste à encaisser",
+  "inc.count": "{n} paiements", "inc.files": "{n} dossiers", "inc.chart": "Encaissé par mois", "inc.bySvc": "Par service",
+  "inc.recent": "Derniers paiements", "inc.unpaid": "Soldes à encaisser", "inc.none": "Aucun paiement pour l'instant. Ouvrez un dossier dans Tous les clients et ajoutez son premier paiement.",
+  "inc.allPaid": "Tous les dossiers avec honoraires sont réglés.", "inc.export": "Télécharger CSV", "inc.open": "Ouvrir le dossier", "inc.remind": "Relancer sur WhatsApp",
+  "inc.remindMsg": "Bonjour {name}, petit rappel d'Al Marjaa concernant le dossier {file} : le solde restant est de {amount}. Merci !"
+});
+Object.assign(window.I18N.ar, {
+  "pay.title": "الدفعات", "pay.fee": "الأتعاب المتّفق عليها", "pay.feeSave": "حفظ الأتعاب", "pay.feeSaved": "حُفظت الأتعاب.",
+  "pay.paid": "المدفوع", "pay.balance": "المتبقّي", "pay.noFee": "لم تُحدَّد الأتعاب بعد", "pay.full": "مدفوع بالكامل", "pay.due": "متبقٍّ {a}",
+  "pay.none": "لا دفعات مسجّلة بعد.", "pay.add": "إضافة دفعة", "pay.amount": "المبلغ", "pay.currency": "العملة",
+  "pay.method": "طريقة الدفع", "pay.date": "التاريخ", "pay.note": "ملاحظة (اختياري)", "pay.added": "سُجّلت الدفعة.",
+  "pay.deleted": "حُذفت الدفعة.", "pay.del": "حذف الدفعة", "pay.sure": "حذف؟ اضغط مجدداً", "pay.badAmount": "أدخل مبلغاً أكبر من صفر.",
+  "pay.m.cash": "نقداً", "pay.m.transfer": "تحويل مصرفي", "pay.m.omt": "OMT", "pay.m.whish": "Whish", "pay.m.card": "بطاقة", "pay.m.cheque": "شيك", "pay.m.other": "أخرى",
+  "inc.tab": "المداخيل", "inc.sub": "عرض المكتب — المقبوض وما بانتظار التحصيل",
+  "inc.month": "هذا الشهر", "inc.last": "الشهر الماضي", "inc.year": "هذه السنة", "inc.out": "بانتظار التحصيل",
+  "inc.count": "{n} دفعات", "inc.files": "{n} ملفات", "inc.chart": "المقبوض شهرياً", "inc.bySvc": "حسب الخدمة",
+  "inc.recent": "آخر الدفعات", "inc.unpaid": "مبالغ بانتظار التحصيل", "inc.none": "لا دفعات بعد. افتح ملفاً في «كل الزبائن» وأضف أول دفعة.",
+  "inc.allPaid": "كل الملفات التي لها أتعاب مدفوعة بالكامل.", "inc.export": "تنزيل CSV", "inc.open": "فتح الملف", "inc.remind": "تذكير عبر واتساب",
+  "inc.remindMsg": "مرحباً {name}، تذكير لطيف من المرجع بخصوص الملف {file}: المبلغ المتبقّي {amount}. شكراً لك!"
+});
+
+Object.assign(window.I18N.en, { "inc.count1": "1 payment", "inc.files1": "1 file" });
+Object.assign(window.I18N.fr, { "inc.count1": "1 paiement", "inc.files1": "1 dossier" });
+Object.assign(window.I18N.ar, { "inc.count1": "دفعة واحدة", "inc.files1": "ملف واحد" });

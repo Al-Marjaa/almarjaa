@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8a6a2f"/><stop offset=".45" stop-color="#f4e4bb"/><stop offset=".7" stop-color="#c9a96e"/><stop offset="1" stop-color="#7d5c22"/>
+    </linearGradient>
+    <clipPath id="inner"><path d="M32 7 57 32 32 57 7 32Z"/></clipPath>
+  </defs>
+  <path d="M32 1.5 62.5 32 32 62.5 1.5 32Z" fill="url(#gold)"/>
+  <g clip-path="url(#inner)">
+    <rect width="64" height="64" fill="#ffffff"/>
+    <rect width="64" height="19.5" fill="#e3131f"/>
+    <rect y="44.5" width="64" height="20" fill="#e3131f"/>
+    <path fill="#00a651" d="M32 19.5 36.6 25.4H34.4L39.2 31.2H36.2L41.6 37.6H33.6V44.5H30.4V37.6H22.4L27.8 31.2H24.8L29.6 25.4H27.4Z"/>
+  </g>
+  <path d="M32 7 57 32 32 57 7 32Z" fill="none" stroke="#5c4316" stroke-opacity=".35" stroke-width=".8"/>
+</svg>

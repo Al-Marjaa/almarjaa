@@ -198,6 +198,7 @@
         <div class="seg" id="dScope">
           <button type="button" data-v="all" data-i18n="dash.tab.all"></button>
           <button type="button" data-v="mine" data-i18n="dash.tab.mine"></button>
+          <button type="button" data-v="income" data-i18n="inc.tab"></button>
         </div>
         <input type="search" id="dSearch" data-i18n-ph="dash.search" />
         <select id="dFilter"></select>

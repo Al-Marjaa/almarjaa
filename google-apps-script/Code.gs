@@ -5,6 +5,7 @@
  *    • Google Drive  → Al Marjaa — Client Files / <Client Name> / <Service> / files
  *    • Google Sheet  → "Al Marjaa — Tracking" (Inquiries, Files, Users tabs)
  *    • Gmail         → notifications + password-reset codes
+ *    • Payments      → fee agreed + money received per file (Payments tab), office only
  *    • News          → your own posts (News tab) + headlines read every hour
  *                      from the Presidency of the Council of Ministers (PCM tab)
  *
@@ -47,7 +48,11 @@ const STATUS_TEXT = {
 };
 const INQ_COLS  = ["id", "created_at", "updated_at", "status", "status_note", "name", "phone", "email", "contact",
                    "service", "service_ar", "service_id", "transaction", "transaction_ar", "sub_index", "notes",
-                   "user_id", "folder_id", "folder_url"];
+                   "user_id", "folder_id", "folder_url", "fee", "fee_currency"];
+// money received for each file (office only)
+const PAY_COLS  = ["id", "inquiry_id", "date", "amount", "currency", "method", "note", "client", "service", "created_at", "created_by"];
+const PAY_METHODS = ["cash", "transfer", "omt", "whish", "card", "cheque", "other"];
+const CURRENCIES = ["USD", "LBP"];
 const FILE_COLS = ["id", "inquiry_id", "user_id", "doc_index", "label", "label_ar", "file_name", "file_id", "size", "created_at"];
 const NEWS_COLS = ["id", "date", "category", "service_id", "title", "title_ar", "summary", "summary_ar",
                    "body", "body_ar", "source_name", "source_url", "published", "image",
@@ -72,6 +77,11 @@ function setup() {
   ensureSheet_(ss, "Inquiries", INQ_COLS);
   ensureSheet_(ss, "Files", FILE_COLS);
   ensureSheet_(ss, "Users", USER_COLS);
+  const paySh = ensureSheet_(ss, "Payments", PAY_COLS);
+  const prow = Math.max(paySh.getMaxRows() - 1, 1);
+  paySh.getRange(2, PAY_COLS.indexOf("currency") + 1, prow, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(CURRENCIES, true).build());
+  paySh.getRange(2, PAY_COLS.indexOf("method") + 1, prow, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(PAY_METHODS, true).build());
+  paySh.setColumnWidth(PAY_COLS.indexOf("note") + 1, 260);
   const newsSh = ensureSheet_(ss, "News", NEWS_COLS);
   const nrows = Math.max(newsSh.getMaxRows() - 1, 1);
   newsSh.getRange(2, NEWS_COLS.indexOf("category") + 1, nrows, 1)
@@ -314,6 +324,8 @@ const ACTIONS = {
     const inqs = rows_("Inquiries").filter(r => all || r.user_id === u.id);
     const ids = {}; inqs.forEach(r => ids[r.id] = true);
     const files = rows_("Files").filter(f => ids[f.inquiry_id]);
+    const admin = u.role === "admin";
+    const pays = admin ? payRows_().filter(p => ids[p.inquiry_id]) : [];
     const out = inqs.map(r => ({
       id: r.id, created_at: iso_(r.created_at), updated_at: iso_(r.updated_at),
       status: STATUSES.indexOf(r.status) >= 0 ? r.status : "received", status_note: r.status_note,
@@ -321,13 +333,57 @@ const ACTIONS = {
       service: r.service, service_ar: r.service_ar, service_id: r.service_id,
       transaction: r.transaction, transaction_ar: r.transaction_ar,
       sub_index: r.sub_index === "" ? null : +r.sub_index, notes: r.notes,
-      folder_url: u.role === "admin" ? r.folder_url : undefined,
+      folder_url: admin ? r.folder_url : undefined,
+      fee: admin && r.fee !== "" && r.fee != null ? +r.fee || 0 : null,
+      fee_currency: admin ? (CURRENCIES.indexOf(String(r.fee_currency)) >= 0 ? String(r.fee_currency) : "USD") : undefined,
+      payments: admin ? pays.filter(p => p.inquiry_id === r.id) : undefined,
       inquiry_files: files.filter(f => f.inquiry_id === r.id).map(f => ({
         id: f.id, doc_index: f.doc_index === "" ? null : +f.doc_index, label: f.label, label_ar: f.label_ar,
         file_name: f.file_name, size: +f.size || 0, created_at: iso_(f.created_at)
       }))
     })).sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
     return { rows: out };
+  },
+
+  /* ---------- office: fees and payments ---------- */
+  feeSet(d) {
+    admin_(d.token);
+    return withLock_(() => {
+      ensureSheet_(sheet_(), "Inquiries", INQ_COLS);
+      const inq = findInquiry_(d.id); if (!inq) throw fail_("not_found");
+      const fee = d.fee === "" || d.fee == null ? "" : Math.max(0, +d.fee || 0);
+      update_("Inquiries", inq._row, { fee: fee, fee_currency: CURRENCIES.indexOf(d.currency) >= 0 ? d.currency : "USD" });
+      return {};
+    });
+  },
+
+  payAdd(d) {
+    const u = admin_(d.token);
+    const amount = Math.round((+d.amount || 0) * 100) / 100;
+    if (!(amount > 0)) throw fail_("missing_fields");
+    return withLock_(() => {
+      ensureSheet_(sheet_(), "Payments", PAY_COLS);
+      const inq = findInquiry_(d.id); if (!inq) throw fail_("not_found");
+      const row = {
+        id: "PAY-" + Utilities.getUuid().replace(/-/g, "").slice(0, 8).toUpperCase(), inquiry_id: inq.id,
+        date: /^\d{4}-\d{2}-\d{2}$/.test(String(d.date || "")) ? d.date : today_(),
+        amount: amount, currency: CURRENCIES.indexOf(d.currency) >= 0 ? d.currency : "USD",
+        method: PAY_METHODS.indexOf(d.method) >= 0 ? d.method : "cash", note: String(d.note || "").slice(0, 300),
+        client: inq.name, service: inq.service, created_at: new Date(), created_by: u.email
+      };
+      append_("Payments", row);
+      return { payment: payOut_(row) };
+    });
+  },
+
+  payDelete(d) {
+    admin_(d.token);
+    return withLock_(() => {
+      const p = rows_("Payments").find(x => String(x.id) === String(d.id));
+      if (!p) throw fail_("not_found");
+      sheet_().getSheetByName("Payments").deleteRow(p._row);
+      return {};
+    });
   },
 
   update(d) {
@@ -532,6 +588,18 @@ function parsePcm_(html, pageUrl) {
 function hashId_(s) {
   return Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, String(s), Utilities.Charset.UTF_8)
     .slice(0, 6).map(b => ("0" + (b & 255).toString(16)).slice(-2)).join("");
+}
+
+/* ---------- payment helpers ---------- */
+function payOut_(p) {
+  return { id: String(p.id), inquiry_id: String(p.inquiry_id),
+    date: p.date instanceof Date ? Utilities.formatDate(p.date, CONFIG.TIME_ZONE, "yyyy-MM-dd").slice(0, 10) : String(p.date || "").slice(0, 10),
+    amount: +p.amount || 0, currency: CURRENCIES.indexOf(String(p.currency)) >= 0 ? String(p.currency) : "USD",
+    method: PAY_METHODS.indexOf(String(p.method)) >= 0 ? String(p.method) : "other", note: String(p.note || "") };
+}
+function payRows_() {
+  let r = []; try { r = rows_("Payments"); } catch (e) { return []; }
+  return r.filter(p => p.inquiry_id).map(payOut_);
 }
 
 /* ---------- news helpers ---------- */

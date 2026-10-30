@@ -3,6 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="icon" href="favicon-16.png" sizes="16x16" type="image/png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="theme-color" content="#f6f1e6" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0c0b09" media="(prefers-color-scheme: dark)" />
   <title>Al Marjaa — Government Services, Handled</title>
   <meta name="description" content="Commercial register, NSSF, real estate, vehicles, MoFA legalisation, insurance and more — send your documents online. | السجل التجاري، الضمان، العقارات، السيارات، الخارجية، التأمين." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -104,55 +110,22 @@
     </section>
 
     <!-- Apply / Inquiry -->
-    <section id="apply" class="section apply">
-      <div class="apply-wrap">
-        <div class="apply-side reveal">
+    <section id="apply" class="section apply-cta">
+      <div class="ac-card reveal tilt">
+        <div class="ac-copy">
           <p class="eyebrow" data-i18n="apply.eyebrow"></p>
           <h2 data-i18n="apply.title"></h2>
           <p class="muted" data-i18n="apply.sub"></p>
-          <div class="checklist-card" id="checklistCard"></div>
-          <p class="disclaimer" data-i18n="disclaimer"></p>
+          <div class="hero-cta">
+            <button type="button" class="btn" data-open-file data-i18n="nav.cta"></button>
+            <a href="#" class="btn btn-ghost" data-wa data-i18n="f.chatLink"></a>
+          </div>
         </div>
-
-        <form id="inquiryForm" class="form reveal" method="POST" enctype="multipart/form-data" novalidate>
-          <input type="hidden" name="_subject" id="fSubject" value="New inquiry" />
-          <input type="hidden" name="_template" value="table" />
-          <input type="hidden" name="_captcha" value="false" />
-          <input type="hidden" name="_next" id="fNext" />
-          <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" />
-          <div class="row">
-            <label class="field"><span data-i18n="f.name"></span><input name="Name" required autocomplete="name" /></label>
-            <label class="field"><span data-i18n="f.phone"></span><input name="Phone" type="tel" required autocomplete="tel" placeholder="+961…" dir="ltr" /></label>
-          </div>
-          <div class="row">
-            <label class="field"><span data-i18n="f.email"></span><input name="email" type="email" autocomplete="email" dir="ltr" /></label>
-            <label class="field"><span data-i18n="f.pref"></span>
-              <select name="Preferred contact" id="fPref">
-                <option value="WhatsApp" data-i18n="f.pref.wa"></option>
-                <option value="Phone call" data-i18n="f.pref.call"></option>
-                <option value="Email" data-i18n="f.pref.email"></option>
-              </select>
-            </label>
-          </div>
-          <div class="row">
-            <label class="field"><span data-i18n="f.service"></span><select name="Service" id="fService" required></select></label>
-            <label class="field"><span data-i18n="f.tx"></span><select name="Transaction" id="fSub" required></select></label>
-          </div>
-          <div class="uploads" id="uploads"></div>
-          <div class="field"><span data-i18n="f.extra"></span>
-            <label class="drop" data-drop>
-              <input type="file" name="attachment" id="extraFiles" multiple accept=".pdf,.jpg,.jpeg,.png,.heic,.doc,.docx" />
-              <p data-i18n="drop"></p>
-            </label>
-          </div>
-          <label class="field"><span data-i18n="f.notes"></span><textarea name="Message" rows="4" data-i18n-ph="f.notesPh"></textarea></label>
-          <div class="progress" id="progress" hidden><span></span></div>
-          <div class="form-foot">
-            <p class="small muted" id="sizeInfo"></p>
-            <button type="submit" class="btn" id="submitBtn" data-i18n="f.send"></button>
-          </div>
-          <p class="small muted"><span data-i18n="f.chat"></span> <a href="#" data-wa data-i18n="f.chatLink"></a></p>
-        </form>
+        <ol class="ac-steps" aria-hidden="true">
+          <li><span>01</span><b data-i18n="fs.s1"></b></li>
+          <li><span>02</span><b data-i18n="fs.s2"></b></li>
+          <li><span>03</span><b data-i18n="fs.s3"></b></li>
+        </ol>
       </div>
     </section>
 
@@ -206,6 +179,7 @@
   <script src="core.js"></script>
   <script src="scene.js"></script>
   <script src="home.js"></script>
+  <script src="apply.js"></script>
   <script src="account.js"></script>
   <script src="newsroom.js"></script>
 </body>
